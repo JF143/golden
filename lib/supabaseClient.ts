@@ -7,3 +7,4 @@ export const supabase = createClient(NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPAB
 
 console.log('Supabase URL:', NEXT_PUBLIC_SUPABASE_URL);
 console.log('Supabase Key:', NEXT_PUBLIC_SUPABASE_ANON_KEY);
+console.log("Vercel env check:", process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
