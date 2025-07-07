@@ -1,143 +1,388 @@
-import React from "react";
-import Link from "next/link";
-import { useRouter } from "next/router";
+"use client"
 
-const mockShops = [
-  {
-    id: 1,
-    name: "Mama's Kitchen",
-    address: "Dormitory Lane, University Campus",
-    rating: 4.8,
-    image: null,
-  },
-  {
-    id: 2,
-    name: "Sweet Treats",
-    address: "Food Court, Main Building",
-    rating: 4.7,
-    image: null,
-  },
-];
+import { useState } from "react"
+import Head from "next/head"
+import { useRouter } from "next/router"
 
-const gold = "#E2B24A";
+const GOLD = "#E2B24A"
+const LIGHT_GOLD = "#fff7e0"
+const mockStats = [
+  { label: "Total Sales", value: "₱37,800.00", icon: "fa-coins" },
+  { label: "Total Revenue", value: "₱37,800.00", icon: "fa-wallet" },
+  { label: "Completed Orders", value: 12, icon: "fa-check-circle" },
+  { label: "Items Sold", value: 45, icon: "fa-utensils" },
+]
+const mockTopItems = [
+  { name: "Chicken Adobo", sold: 20 },
+  { name: "Leche Flan", sold: 15 },
+  { name: "Pancit", sold: 10 },
+]
+const mockRecentOrders = [
+  { id: 201, time: "Today 10:30 AM", total: 250 },
+  { id: 202, time: "Today 11:00 AM", total: 180 },
+  { id: 203, time: "Yesterday", total: 320 },
+]
 
-const useResponsive = () => {
-  const [isWide, setIsWide] = React.useState(false);
-  React.useEffect(() => {
-    const check = () => setIsWide(window.innerWidth >= 1100);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-  return isWide;
-};
-
-const ShopsList = () => {
-  const [search, setSearch] = React.useState("");
-  const isWide = useResponsive();
-  const router = useRouter();
-  const filteredShops = mockShops.filter(
-    (shop) =>
-      shop.name.toLowerCase().includes(search.toLowerCase()) ||
-      shop.address.toLowerCase().includes(search.toLowerCase())
-  );
+const Overview = () => {
+  const router = useRouter()
+  const [timeFilter, setTimeFilter] = useState("This Week")
+  const timeOptions = ["Today", "This Week", "This Month", "This Year"]
 
   return (
-    <div style={{ background: "#f7f7f7", minHeight: "100vh", paddingBottom: 80 }}>
-      {/* Top Bar */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: isWide ? "18px 24px" : "18px 12px", background: "#fff", position: "sticky", top: 0, zIndex: 1000, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-        <span style={{ fontWeight: 600, fontSize: 20, color: "#222" }}>Discover Shops</span>
-      </div>
-      {/* Search Bar */}
-      <div style={{ padding: isWide ? "32px 32px 0 32px" : "24px 24px 0 24px", maxWidth: isWide ? 1400 : 900, margin: "0 auto" }}>
-        <form onSubmit={e => e.preventDefault()} style={{ display: "flex", borderRadius: 8, overflow: "hidden", background: "#fff", border: "1px solid #e0e0e0", marginBottom: 24 }}>
-          <input
-            type="search"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search shops by name..."
-            style={{ flexGrow: 1, border: "none", padding: "14px 18px", fontSize: 16, outline: "none", background: "transparent", color: "#222" }}
-          />
-          <button type="submit" style={{ border: "none", borderLeft: "1px solid #e0e0e0", background: "transparent", color: gold, padding: "0 18px", cursor: "pointer", fontSize: 20 }}>
-            <i className="fas fa-search"></i>
-          </button>
-        </form>
-        {/* Shop Cards Grid */}
-        {filteredShops.length === 0 ? (
-          <div style={{ textAlign: "center", color: "#888", padding: "50px 20px", background: "#fff", borderRadius: 12, margin: "20px 0" }}>
-            <div style={{ fontSize: 48, color: "#e0e0e0", marginBottom: 15 }}><i className="fas fa-store-slash"></i></div>
-            <p style={{ fontSize: 18, marginBottom: 5 }}>No Shops Found</p>
-            <div style={{ fontSize: 15, color: "#aaa" }}>There are currently no shops available. Please check back soon!</div>
+    <>
+      <Head>
+        <title>Overview - Golden Bites</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+      </Head>
+      <div
+        className="app-container"
+        style={{
+          width: "100vw",
+          margin: 0,
+          background: "#f7f9fb",
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          fontFamily: "Inter, Segoe UI, Arial, sans-serif",
+        }}
+      >
+        <div
+          className="main-content"
+          style={{
+            flexGrow: 1,
+            padding: "40px 0 120px 0",
+            overflowY: "auto",
+            width: "100vw",
+            maxWidth: 1100,
+            margin: "0 auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: 32,
+          }}
+        >
+          <div
+            className="overview-title-bar"
+            style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}
+          >
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: "#000000" }}>Overview</h1>
+            <button
+              className="refresh-button"
+              style={{
+                background: GOLD,
+                color: "#fff",
+                border: "none",
+                padding: "8px 15px",
+                borderRadius: 20,
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+              }}
+            >
+              <i className="fa-solid fa-rotate"></i>Refresh
+            </button>
           </div>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: isWide ? "repeat(auto-fill, minmax(260px, 1fr))" : "repeat(auto-fill, minmax(220px, 1fr))", gap: 18 }}>
-            {filteredShops.map((shop) => (
-              <a key={shop.id} href="#" style={{ background: "#fff", borderRadius: 12, overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.07)", textDecoration: "none", color: "inherit", display: "flex", flexDirection: "column", transition: "transform 0.2s, box-shadow 0.2s" }}>
-                <div style={{ width: "100%", height: 140, background: "#f0f0f0", display: "flex", alignItems: "center", justifyContent: "center", color: "#cccccc" }}>
-                  <i className="fas fa-store" style={{ fontSize: 40 }}></i>
-                </div>
-                <div style={{ padding: 15 }}>
-                  <h3 style={{ margin: 0, marginBottom: 6, fontSize: 18, fontWeight: 600, color: "#222", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{shop.name}</h3>
-                  <p style={{ margin: 0, marginBottom: 4, fontSize: 15, color: "#aaa", lineHeight: 1.4, height: 24, overflow: "hidden", textOverflow: "ellipsis" }}>{shop.address}</p>
-                  <div style={{ display: "flex", alignItems: "center", fontSize: 15, color: "#888", marginTop: 8 }}>
-                    <i className="fas fa-star" style={{ color: "#ffc107", marginRight: 3 }}></i> {shop.rating}
-                  </div>
-                </div>
-              </a>
+          <div
+            className="time-filter"
+            style={{ display: "flex", gap: 8, marginBottom: 25, overflowX: "auto", paddingBottom: 5 }}
+          >
+            {timeOptions.map((opt) => (
+              <div
+                key={opt}
+                className={`time-option${timeFilter === opt ? " active" : ""}`}
+                style={{
+                  padding: "7px 14px",
+                  fontSize: 13,
+                  color: timeFilter === opt ? "#fff" : GOLD,
+                  background: timeFilter === opt ? GOLD : LIGHT_GOLD,
+                  border: timeFilter === opt ? `1px solid ${GOLD}` : "1px solid transparent",
+                  borderRadius: 18,
+                  cursor: "pointer",
+                  fontWeight: timeFilter === opt ? 600 : 400,
+                  whiteSpace: "nowrap",
+                  marginRight: 0,
+                }}
+                onClick={() => setTimeFilter(opt)}
+              >
+                {opt}
+              </div>
             ))}
           </div>
-        )}
-      </div>
-      {/* Bottom Navigation (reuse from index) */}
-      <nav style={{
-        display: "flex",
-        justifyContent: "space-around",
-        padding: "10px 0",
-        backgroundColor: "#fff",
-        borderTop: "1px solid #e0e0e0",
-        position: "fixed",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        maxWidth: isWide ? 1400 : 900,
-        margin: "0 auto",
-        zIndex: 1000,
-      }}>
-        <Link href="/" legacyBehavior>
-          <a style={{ display: "flex", flexDirection: "column", alignItems: "center", fontSize: "0.7rem", color: "#555", cursor: "pointer", textDecoration: "none", padding: "5px", flex: 1, textAlign: "center" }}>
-            <div style={{ marginBottom: "3px", fontSize: "1.2rem" }}><i className="fas fa-home"></i></div>
-            <span>Home</span>
-          </a>
-        </Link>
-        <a
-          href="/cart"
-          onClick={e => { e.preventDefault(); router.push('/cart'); }}
-          style={{ display: "flex", flexDirection: "column", alignItems: "center", fontSize: "0.7rem", color: "#555", cursor: "pointer", textDecoration: "none", padding: "5px", flex: 1, textAlign: "center" }}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: 24,
+              margin: "0 24px 32px 24px",
+            }}
+          >
+            {mockStats.map((stat, i) => (
+              <div
+                key={i}
+                style={{
+                  background: "#fff",
+                  borderRadius: 14,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                  padding: "28px 22px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  minWidth: 0,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+                  <div
+                    style={{
+                      fontSize: 26,
+                      color: GOLD,
+                      background: LIGHT_GOLD,
+                      borderRadius: 8,
+                      width: 44,
+                      height: 44,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginRight: 14,
+                    }}
+                  >
+                    <i className={`fa-solid ${stat.icon}`}></i>
+                  </div>
+                  <span style={{ fontSize: 17, color: "#888", fontWeight: 500 }}>{stat.label}</span>
+                </div>
+                <div style={{ fontSize: 28, fontWeight: 700, color: "#222", letterSpacing: 0.5 }}>{stat.value}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ height: 1, background: "#ececec", margin: "0 24px 24px 24px", borderRadius: 1 }} />
+          <div style={{ display: "flex", flexDirection: "row", gap: 24, margin: "0 24px", flexWrap: "wrap" }}>
+            <div
+              style={{
+                flex: 1,
+                minWidth: 320,
+                background: "#fff",
+                borderRadius: 14,
+                boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                padding: "28px 22px",
+                marginBottom: 24,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", marginBottom: 18 }}>
+                <i className="fa-solid fa-crown" style={{ color: GOLD, fontSize: 22, marginRight: 12 }}></i>
+                <h1 style={{ fontSize: 22, fontWeight: 700, color: "#222", margin: 0 }}>Top Items</h1>
+              </div>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                {mockTopItems.map((item, i) => (
+                  <li
+                    key={i}
+                    style={{
+                      fontSize: 17,
+                      color: "#222",
+                      marginBottom: 12,
+                      fontWeight: 500,
+                      borderRadius: 8,
+                      padding: "10px 12px",
+                      transition: "background 0.15s",
+                      cursor: "pointer",
+                    }}
+                    onMouseOver={(e) => (e.currentTarget.style.background = "#f7f7fa")}
+                    onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
+                  >
+                    <span style={{ marginRight: 10 }}>{item.name}</span>
+                    <span style={{ color: "#aaa", fontSize: 15 }}>(Sold: {item.sold})</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div
+              style={{
+                flex: 1,
+                minWidth: 320,
+                background: "#fff",
+                borderRadius: 14,
+                boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                padding: "28px 22px",
+                marginBottom: 24,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", marginBottom: 18 }}>
+                <i
+                  className="fa-solid fa-clock-rotate-left"
+                  style={{ color: "#4a90e2", fontSize: 22, marginRight: 12 }}
+                ></i>
+                <h1 style={{ fontSize: 22, fontWeight: 700, color: "#222", margin: 0 }}>Recent Orders</h1>
+              </div>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                {mockRecentOrders.map((order, i) => (
+                  <li
+                    key={i}
+                    style={{
+                      fontSize: 17,
+                      color: "#222",
+                      marginBottom: 12,
+                      fontWeight: 500,
+                      borderRadius: 8,
+                      padding: "10px 12px",
+                      transition: "background 0.15s",
+                      cursor: "pointer",
+                    }}
+                    onMouseOver={(e) => (e.currentTarget.style.background = "#f7f7fa")}
+                    onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
+                  >
+                    Order #{order.id} - {order.time} - <span style={{ color: GOLD }}>₱{order.total}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div
+          className="nav-bar"
+          style={{
+            display: "flex",
+            justifyContent: "space-around",
+            alignItems: "center",
+            background: "#fff",
+            boxShadow: "0 -2px 10px rgba(0,0,0,0.1)",
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            width: "100vw",
+            margin: 0,
+            padding: "12px 0",
+            zIndex: 1000,
+            borderTop: "1px solid #e0e0e0",
+          }}
         >
-          <div style={{ marginBottom: "3px", fontSize: "1.2rem" }}><i className="fas fa-shopping-cart"></i></div>
-          <span>Cart</span>
-        </a>
-        <Link href="/shops-list" legacyBehavior>
-          <a style={{ display: "flex", flexDirection: "column", alignItems: "center", fontSize: "0.7rem", color: gold, cursor: "pointer", textDecoration: "none", padding: "5px", flex: 1, textAlign: "center" }}>
-            <div style={{ marginBottom: "3px", fontSize: "1.2rem", color: gold }}><i className="fas fa-store"></i></div>
-            <span>Shops</span>
+          <a
+            href="/dashboard"
+            className="nav-item"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              fontSize: 13,
+              color: "#777",
+              cursor: "pointer",
+              padding: "5px 8px",
+              textDecoration: "none",
+            }}
+            onClick={(e) => {
+              e.preventDefault()
+              router.push("/dashboard")
+            }}
+          >
+            <div className="nav-icon" style={{ fontSize: 22, marginBottom: 3 }}>
+              <i className="fa-solid fa-house"></i>
+            </div>
+            <div>Home</div>
           </a>
-        </Link>
-        <Link href="/favorites" legacyBehavior>
-          <a style={{ display: "flex", flexDirection: "column", alignItems: "center", fontSize: "0.7rem", color: "#555", cursor: "pointer", textDecoration: "none", padding: "5px", flex: 1, textAlign: "center" }}>
-            <div style={{ marginBottom: "3px", fontSize: "1.2rem" }}><i className="fas fa-heart"></i></div>
-            <span>Favorites</span>
+          <a
+            href="/orders"
+            className="nav-item"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              fontSize: 13,
+              color: "#777",
+              cursor: "pointer",
+              padding: "5px 8px",
+              textDecoration: "none",
+            }}
+            onClick={(e) => {
+              e.preventDefault()
+              router.push("/orders")
+            }}
+          >
+            <div className="nav-icon" style={{ fontSize: 22, marginBottom: 3 }}>
+              <i className="fa-solid fa-table-list"></i>
+            </div>
+            <div>Orders</div>
           </a>
-        </Link>
-        <Link href="/notifications" legacyBehavior>
-          <a style={{ display: "flex", flexDirection: "column", alignItems: "center", fontSize: "0.7rem", color: "#555", cursor: "pointer", textDecoration: "none", padding: "5px", flex: 1, textAlign: "center" }}>
-            <div style={{ marginBottom: "3px", fontSize: "1.2rem" }}><i className="fas fa-bell"></i></div>
-            <span>Notifications</span>
+          <div
+            className="add-button-container"
+            style={{ position: "relative", display: "flex", justifyContent: "center", alignItems: "center" }}
+          >
+            <a
+              href="/add-item"
+              className="add-button"
+              style={{
+                width: 56,
+                height: 56,
+                background: "#E2B24A",
+                borderRadius: "50%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                marginTop: -24,
+                fontSize: 26,
+                color: "#fff",
+                cursor: "pointer",
+                border: "2px solid #fff",
+                zIndex: 1,
+              }}
+              onClick={(e) => {
+                e.preventDefault()
+                router.push("/add-item")
+              }}
+            >
+              <i className="fa-solid fa-plus"></i>
+            </a>
+          </div>
+          <a
+            href="/food_list"
+            className="nav-item"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              fontSize: 13,
+              color: "#777",
+              cursor: "pointer",
+              padding: "5px 8px",
+              textDecoration: "none",
+            }}
+            onClick={(e) => {
+              e.preventDefault()
+              router.push("/food_list")
+            }}
+          >
+            <div className="nav-icon" style={{ fontSize: 22, marginBottom: 3 }}>
+              <i className="fa-solid fa-utensils"></i>
+            </div>
+            <div>Menu</div>
           </a>
-        </Link>
-      </nav>
-    </div>
-  );
-};
+          <a
+            href="/overview"
+            className="nav-item active"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              fontSize: 13,
+              color: "#E2B24A",
+              cursor: "pointer",
+              padding: "5px 8px",
+              textDecoration: "none",
+            }}
+            onClick={(e) => {
+              e.preventDefault()
+              router.push("/overview")
+            }}
+          >
+            <div className="nav-icon" style={{ fontSize: 22, marginBottom: 3 }}>
+              <i className="fa-solid fa-chart-simple"></i>
+            </div>
+            <div>Sales</div>
+          </a>
+        </div>
+      </div>
+    </>
+  )
+}
 
-export default ShopsList; 
+export default Overview
