@@ -1,13 +1,12 @@
 "use client"
 
-import React, { useState } from "react"
-import Head from "next/head"
+import React, { useEffect } from "react"
+import Link from "next/link"
 import { useRouter } from "next/router"
-
-const gold = "#E2B24A"
+import { useUser } from "../lib/userContext"
 
 const useResponsive = () => {
-  const [isWide, setIsWide] = useState(false)
+  const [isWide, setIsWide] = React.useState(false)
   React.useEffect(() => {
     const check = () => setIsWide(window.innerWidth >= 1100)
     check()
@@ -17,350 +16,451 @@ const useResponsive = () => {
   return isWide
 }
 
-const Landing = () => {
-  const router = useRouter()
+const LandingPage = () => {
   const isWide = useResponsive()
+  const router = useRouter()
+  const { user, profile } = useUser()
 
-  const handleUserTypeSelection = (userType: "customer" | "merchant") => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("userType", userType)
+  // Redirect authenticated users
+  useEffect(() => {
+    if (user && profile) {
+      if (profile.user_type === "customer") {
+        router.push("/home")
+      } else if (profile.user_type === "shop") {
+        router.push("/dashboard")
+      }
     }
-    router.push("/sign-in")
+  }, [user, profile, router])
+
+  const handleOrderFood = () => {
+    router.push("/sign-in?type=customer")
+  }
+
+  const handleSellFood = () => {
+    router.push("/sign-in?type=shop")
+  }
+
+  const handleBrowseRestaurants = () => {
+    router.push("/shop-products")
   }
 
   return (
-    <>
-      <Head>
-        <title>Golden Bites - Campus Food Delivery</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-      </Head>
+    <div
+      style={{
+        background: "linear-gradient(135deg, #E2B24A 0%, #D4A043 50%, #C69236 100%)",
+        minHeight: "100vh",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Background decorative elements */}
       <div
         style={{
+          position: "absolute",
+          top: "20%",
+          right: "10%",
+          width: "300px",
+          height: "300px",
+          borderRadius: "50%",
+          background: "rgba(255, 255, 255, 0.1)",
+          opacity: 0.5,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          bottom: "10%",
+          left: "5%",
+          width: "200px",
+          height: "200px",
+          borderRadius: "50%",
+          background: "rgba(255, 255, 255, 0.08)",
+          opacity: 0.6,
+        }}
+      />
+
+      <div
+        style={{
+          maxWidth: isWide ? 1400 : 900,
+          margin: "0 auto",
           minHeight: "100vh",
-          background: `linear-gradient(135deg, ${gold} 0%, #d4a043 100%)`,
           display: "flex",
           flexDirection: "column",
-          fontFamily: "'Inter', 'Segoe UI', sans-serif",
+          padding: isWide ? "0 48px" : "0 16px",
+          position: "relative",
+          zIndex: 1,
         }}
       >
         {/* Header */}
         <header
           style={{
-            padding: isWide ? "20px 40px" : "16px 20px",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            background: "rgba(255,255,255,0.1)",
-            backdropFilter: "blur(10px)",
+            padding: "20px 0",
+            marginBottom: isWide ? "60px" : "40px",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <img
+              src="/img/golden-bites-logo.png"
+              alt="Golden Bites"
               style={{
-                width: 40,
-                height: 40,
-                background: "#fff",
+                width: isWide ? "60px" : "50px",
+                height: isWide ? "60px" : "50px",
                 borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                overflow: "hidden",
               }}
-            >
-              <img
-                src="/img/golden-bites-logo.png"
-                alt="Golden Bites Logo"
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            </div>
-            <span style={{ color: "#fff", fontSize: 20, fontWeight: 700 }}>Golden Bites</span>
-          </div>
-          <nav style={{ display: "flex", gap: isWide ? 32 : 20, alignItems: "center" }}>
-            <a href="#features" style={{ color: "#fff", textDecoration: "none", fontSize: 16, fontWeight: 500 }}>
-              Features
-            </a>
-            <a href="#about" style={{ color: "#fff", textDecoration: "none", fontSize: 16, fontWeight: 500 }}>
-              About
-            </a>
-            <button
-              onClick={() => router.push("/sign-in")}
+            />
+            <span
               style={{
-                background: "#fff",
-                color: gold,
-                border: "none",
-                borderRadius: 8,
-                padding: "8px 20px",
-                fontSize: 14,
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: "transform 0.2s ease",
+                fontSize: isWide ? "24px" : "20px",
+                fontWeight: "bold",
+                color: "white",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
             >
-              Sign In
-            </button>
+              Golden Bites
+            </span>
+          </div>
+          <nav style={{ display: "flex", gap: "32px", alignItems: "center" }}>
+            <Link
+              href="/shop-products"
+              style={{
+                color: "white",
+                textDecoration: "none",
+                fontSize: isWide ? "16px" : "14px",
+                fontWeight: "500",
+              }}
+            >
+              Features
+            </Link>
+            <Link
+              href="/about"
+              style={{
+                color: "white",
+                textDecoration: "none",
+                fontSize: isWide ? "16px" : "14px",
+                fontWeight: "500",
+              }}
+            >
+              About
+            </Link>
+            <Link
+              href="/sign-in"
+              style={{
+                background: "white",
+                color: "#E2B24A",
+                padding: "10px 20px",
+                borderRadius: "25px",
+                textDecoration: "none",
+                fontSize: isWide ? "16px" : "14px",
+                fontWeight: "600",
+                transition: "all 0.3s ease",
+              }}
+            >
+              Sign in
+            </Link>
           </nav>
         </header>
 
-        {/* Hero Section */}
-        <main style={{ flex: 1, display: "flex", alignItems: "center", padding: isWide ? "0 40px" : "0 20px" }}>
-          <div style={{ maxWidth: 1200, margin: "0 auto", width: "100%" }}>
-            <div
+        {/* Main Content */}
+        <main
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flex: 1,
+            gap: isWide ? "80px" : "40px",
+            flexDirection: isWide ? "row" : "column",
+            textAlign: isWide ? "left" : "center",
+          }}
+        >
+          {/* Left Content */}
+          <div style={{ flex: 1, maxWidth: isWide ? "600px" : "100%" }}>
+            <h1
               style={{
-                display: "grid",
-                gridTemplateColumns: isWide ? "1fr 1fr" : "1fr",
-                gap: isWide ? 60 : 40,
-                alignItems: "center",
+                fontSize: isWide ? "64px" : "48px",
+                fontWeight: "bold",
+                color: "white",
+                lineHeight: "1.1",
+                marginBottom: "24px",
+                textShadow: "0 2px 4px rgba(0,0,0,0.1)",
               }}
             >
-              {/* Left Content */}
-              <div style={{ color: "#fff", textAlign: isWide ? "left" : "center" }}>
-                <h1
-                  style={{
-                    fontSize: isWide ? 56 : 40,
-                    fontWeight: 800,
-                    lineHeight: 1.1,
-                    marginBottom: 24,
-                    textShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                  }}
-                >
-                  Campus Food
-                  <br />
-                  <span style={{ color: "#fff3cd" }}>Delivered Right</span>
-                </h1>
-                <p
-                  style={{
-                    fontSize: isWide ? 20 : 18,
-                    lineHeight: 1.6,
-                    marginBottom: 40,
-                    opacity: 0.9,
-                    maxWidth: 500,
-                    margin: isWide ? "0 0 40px 0" : "0 auto 40px auto",
-                  }}
-                >
-                  Order delicious meals from your favorite campus restaurants and get them delivered straight to your
-                  dorm, classroom, or anywhere on campus.
-                </p>
+              Campus Food
+              <br />
+              Delivered Right
+            </h1>
 
-                {/* CTA Buttons */}
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 16,
-                    flexDirection: isWide ? "row" : "column",
-                    alignItems: "center",
-                    justifyContent: isWide ? "flex-start" : "center",
-                  }}
-                >
-                  <button
-                    onClick={() => handleUserTypeSelection("customer")}
-                    style={{
-                      background: "#fff",
-                      color: gold,
-                      border: "none",
-                      borderRadius: 12,
-                      padding: "16px 32px",
-                      fontSize: 18,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                      boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-                      transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                      minWidth: 200,
-                      justifyContent: "center",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "translateY(-3px)"
-                      e.currentTarget.style.boxShadow = "0 8px 30px rgba(0,0,0,0.15)"
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)"
-                      e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.1)"
-                    }}
-                  >
-                    <i className="fas fa-utensils"></i>
-                    Order Food
-                  </button>
-                  <button
-                    onClick={() => handleUserTypeSelection("merchant")}
-                    style={{
-                      background: "transparent",
-                      color: "#fff",
-                      border: "2px solid #fff",
-                      borderRadius: 12,
-                      padding: "14px 32px",
-                      fontSize: 18,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                      transition: "all 0.2s ease",
-                      minWidth: 200,
-                      justifyContent: "center",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "#fff"
-                      e.currentTarget.style.color = gold
-                      e.currentTarget.style.transform = "translateY(-3px)"
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent"
-                      e.currentTarget.style.color = "#fff"
-                      e.currentTarget.style.transform = "translateY(0)"
-                    }}
-                  >
-                    <i className="fas fa-store"></i>
-                    Sell Food
-                  </button>
-                </div>
+            <p
+              style={{
+                fontSize: isWide ? "20px" : "18px",
+                color: "rgba(255, 255, 255, 0.9)",
+                lineHeight: "1.6",
+                marginBottom: "40px",
+                maxWidth: "500px",
+              }}
+            >
+              Order delicious meals from your favorite campus restaurants and get them delivered straight to your dorm,
+              classroom, or anywhere on campus.
+            </p>
 
-                {/* Quick Browse */}
-                <div style={{ marginTop: 40 }}>
-                  <p style={{ fontSize: 16, opacity: 0.8, marginBottom: 16 }}>Or browse restaurants:</p>
-                  <button
-                    onClick={() => router.push("/shop-products")}
-                    style={{
-                      background: "rgba(255,255,255,0.2)",
-                      color: "#fff",
-                      border: "1px solid rgba(255,255,255,0.3)",
-                      borderRadius: 8,
-                      padding: "12px 24px",
-                      fontSize: 16,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      transition: "all 0.2s ease",
-                      backdropFilter: "blur(10px)",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "rgba(255,255,255,0.3)"
-                      e.currentTarget.style.borderColor = "rgba(255,255,255,0.5)"
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "rgba(255,255,255,0.2)"
-                      e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)"
-                    }}
-                  >
-                    <i className="fas fa-search"></i>
-                    Browse Restaurants
-                  </button>
-                </div>
-              </div>
-
-              {/* Right Content - Illustration */}
-              <div
+            {/* Action Buttons */}
+            <div
+              style={{
+                display: "flex",
+                gap: "16px",
+                marginBottom: "32px",
+                flexDirection: isWide ? "row" : "column",
+                alignItems: isWide ? "flex-start" : "center",
+              }}
+            >
+              <button
+                onClick={handleOrderFood}
                 style={{
+                  background: "white",
+                  color: "#E2B24A",
+                  border: "none",
+                  padding: "16px 32px",
+                  borderRadius: "12px",
+                  fontSize: "18px",
+                  fontWeight: "600",
+                  cursor: "pointer",
                   display: "flex",
-                  justifyContent: "center",
                   alignItems: "center",
-                  order: isWide ? 2 : -1,
+                  gap: "8px",
+                  transition: "all 0.3s ease",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)"
+                  e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.15)"
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)"
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)"
                 }}
               >
-                <div
-                  style={{
-                    width: isWide ? 400 : 280,
-                    height: isWide ? 400 : 280,
-                    background: "rgba(255,255,255,0.1)",
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backdropFilter: "blur(20px)",
-                    border: "1px solid rgba(255,255,255,0.2)",
-                  }}
-                >
-                  <i
-                    className="fas fa-motorcycle"
-                    style={{
-                      fontSize: isWide ? 120 : 80,
-                      color: "#fff",
-                      opacity: 0.8,
-                    }}
-                  ></i>
-                </div>
+                🍽️ Order Food
+              </button>
+
+              <button
+                onClick={handleSellFood}
+                style={{
+                  background: "transparent",
+                  color: "white",
+                  border: "2px solid white",
+                  padding: "16px 32px",
+                  borderRadius: "12px",
+                  fontSize: "18px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "white"
+                  e.currentTarget.style.color = "#E2B24A"
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent"
+                  e.currentTarget.style.color = "white"
+                }}
+              >
+                🏪 Sell Food
+              </button>
+            </div>
+
+            {/* Browse Option */}
+            <div style={{ marginTop: "24px" }}>
+              <p
+                style={{
+                  color: "rgba(255, 255, 255, 0.8)",
+                  fontSize: "16px",
+                  marginBottom: "12px",
+                }}
+              >
+                Or browse restaurants:
+              </p>
+              <button
+                onClick={handleBrowseRestaurants}
+                style={{
+                  background: "rgba(255, 255, 255, 0.2)",
+                  color: "white",
+                  border: "1px solid rgba(255, 255, 255, 0.3)",
+                  padding: "12px 24px",
+                  borderRadius: "8px",
+                  fontSize: "16px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(255, 255, 255, 0.3)"
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)"
+                }}
+              >
+                🔍 Browse Restaurants
+              </button>
+            </div>
+          </div>
+
+          {/* Right Content - Delivery Icon */}
+          <div
+            style={{
+              flex: isWide ? "0 0 400px" : "none",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <div
+              style={{
+                width: isWide ? "350px" : "280px",
+                height: isWide ? "350px" : "280px",
+                borderRadius: "50%",
+                background: "rgba(255, 255, 255, 0.1)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                position: "relative",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: isWide ? "120px" : "100px",
+                  filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.1))",
+                }}
+              >
+                🚴‍♂️
               </div>
             </div>
           </div>
         </main>
 
-        {/* Features Section */}
+        {/* Why Choose Section */}
         <section
-          id="features"
           style={{
-            background: "rgba(255,255,255,0.1)",
-            backdropFilter: "blur(10px)",
-            padding: isWide ? "80px 40px" : "60px 20px",
+            marginTop: isWide ? "100px" : "60px",
+            marginBottom: isWide ? "80px" : "60px",
+            textAlign: "center",
           }}
         >
-          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-            <h2
-              style={{
-                fontSize: isWide ? 40 : 32,
-                fontWeight: 700,
-                color: "#fff",
-                textAlign: "center",
-                marginBottom: 60,
-              }}
-            >
-              Why Choose Golden Bites?
-            </h2>
+          <h2
+            style={{
+              fontSize: isWide ? "48px" : "36px",
+              fontWeight: "bold",
+              color: "white",
+              marginBottom: "60px",
+              textShadow: "0 2px 4px rgba(0,0,0,0.1)",
+            }}
+          >
+            Why Choose Golden Bites?
+          </h2>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: isWide ? "repeat(3, 1fr)" : "1fr",
+              gap: "40px",
+              maxWidth: "1000px",
+              margin: "0 auto",
+            }}
+          >
             <div
               style={{
-                display: "grid",
-                gridTemplateColumns: isWide ? "repeat(3, 1fr)" : "1fr",
-                gap: 40,
+                background: "rgba(255, 255, 255, 0.1)",
+                padding: "40px 30px",
+                borderRadius: "16px",
+                backdropFilter: "blur(10px)",
               }}
             >
-              {[
-                {
-                  icon: "fas fa-bolt",
-                  title: "Fast Delivery",
-                  description: "Get your food delivered in 15-30 minutes anywhere on campus",
-                },
-                {
-                  icon: "fas fa-shield-alt",
-                  title: "Safe & Secure",
-                  description: "Secure payments and contactless delivery for your safety",
-                },
-                {
-                  icon: "fas fa-heart",
-                  title: "Campus Favorites",
-                  description: "Discover the best local restaurants loved by students",
-                },
-              ].map((feature, i) => (
-                <div
-                  key={i}
-                  style={{
-                    textAlign: "center",
-                    color: "#fff",
-                    padding: 20,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 80,
-                      height: 80,
-                      background: "rgba(255,255,255,0.2)",
-                      borderRadius: "50%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      margin: "0 auto 24px",
-                      backdropFilter: "blur(10px)",
-                    }}
-                  >
-                    <i className={feature.icon} style={{ fontSize: 32 }}></i>
-                  </div>
-                  <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 16 }}>{feature.title}</h3>
-                  <p style={{ fontSize: 16, opacity: 0.9, lineHeight: 1.6 }}>{feature.description}</p>
-                </div>
-              ))}
+              <div style={{ fontSize: "48px", marginBottom: "20px" }}>⚡</div>
+              <h3
+                style={{
+                  fontSize: "24px",
+                  fontWeight: "600",
+                  color: "white",
+                  marginBottom: "16px",
+                }}
+              >
+                Fast Delivery
+              </h3>
+              <p
+                style={{
+                  color: "rgba(255, 255, 255, 0.8)",
+                  fontSize: "16px",
+                  lineHeight: "1.5",
+                }}
+              >
+                Get your food delivered in 15-30 minutes anywhere on campus
+              </p>
+            </div>
+
+            <div
+              style={{
+                background: "rgba(255, 255, 255, 0.1)",
+                padding: "40px 30px",
+                borderRadius: "16px",
+                backdropFilter: "blur(10px)",
+              }}
+            >
+              <div style={{ fontSize: "48px", marginBottom: "20px" }}>🍽️</div>
+              <h3
+                style={{
+                  fontSize: "24px",
+                  fontWeight: "600",
+                  color: "white",
+                  marginBottom: "16px",
+                }}
+              >
+                Quality Food
+              </h3>
+              <p
+                style={{
+                  color: "rgba(255, 255, 255, 0.8)",
+                  fontSize: "16px",
+                  lineHeight: "1.5",
+                }}
+              >
+                Fresh, delicious meals from trusted campus restaurants
+              </p>
+            </div>
+
+            <div
+              style={{
+                background: "rgba(255, 255, 255, 0.1)",
+                padding: "40px 30px",
+                borderRadius: "16px",
+                backdropFilter: "blur(10px)",
+              }}
+            >
+              <div style={{ fontSize: "48px", marginBottom: "20px" }}>💰</div>
+              <h3
+                style={{
+                  fontSize: "24px",
+                  fontWeight: "600",
+                  color: "white",
+                  marginBottom: "16px",
+                }}
+              >
+                Student Friendly
+              </h3>
+              <p
+                style={{
+                  color: "rgba(255, 255, 255, 0.8)",
+                  fontSize: "16px",
+                  lineHeight: "1.5",
+                }}
+              >
+                Affordable prices and special student discounts
+              </p>
             </div>
           </div>
         </section>
@@ -368,51 +468,48 @@ const Landing = () => {
         {/* Footer */}
         <footer
           style={{
-            background: "rgba(0,0,0,0.2)",
-            padding: "40px 20px",
-            textAlign: "center",
-            color: "#fff",
+            borderTop: "1px solid rgba(255, 255, 255, 0.2)",
+            paddingTop: "40px",
+            paddingBottom: "40px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexDirection: isWide ? "row" : "column",
+            gap: "20px",
           }}
         >
-          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 20 }}>
-              <div
-                style={{
-                  width: 32,
-                  height: 32,
-                  background: "#fff",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  overflow: "hidden",
-                }}
-              >
-                <img
-                  src="/img/golden-bites-logo.png"
-                  alt="Golden Bites Logo"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              </div>
-              <span style={{ fontSize: 18, fontWeight: 600 }}>Golden Bites</span>
-            </div>
-            <p style={{ opacity: 0.8, marginBottom: 20 }}>Made for Campus Life. Delivered Right.</p>
-            <div style={{ display: "flex", justifyContent: "center", gap: 24 }}>
-              <a href="#" style={{ color: "#fff", fontSize: 20, opacity: 0.8 }}>
-                <i className="fab fa-facebook"></i>
-              </a>
-              <a href="#" style={{ color: "#fff", fontSize: 20, opacity: 0.8 }}>
-                <i className="fab fa-instagram"></i>
-              </a>
-              <a href="#" style={{ color: "#fff", fontSize: 20, opacity: 0.8 }}>
-                <i className="fab fa-twitter"></i>
-              </a>
-            </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <img
+              src="/img/golden-bites-logo.png"
+              alt="Golden Bites"
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "50%",
+              }}
+            />
+            <span
+              style={{
+                fontSize: "18px",
+                fontWeight: "600",
+                color: "white",
+              }}
+            >
+              Golden Bites
+            </span>
+          </div>
+          <div
+            style={{
+              color: "rgba(255, 255, 255, 0.7)",
+              fontSize: "14px",
+            }}
+          >
+            © 2024 Golden Bites. All rights reserved.
           </div>
         </footer>
       </div>
-    </>
+    </div>
   )
 }
 
-export default Landing
+export default LandingPage
