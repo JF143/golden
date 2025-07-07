@@ -117,7 +117,7 @@ const Home = () => {
 
   const handleLogout = async () => {
     await signOut()
-    window.location.href = "/welcome"
+    window.location.href = "/"
   }
 
   const addToCart = async (product: any) => {
@@ -605,7 +605,7 @@ const Home = () => {
               <span>Cart</span>
             </a>
           </Link>
-          <Link href="/shops-list" legacyBehavior>
+          <Link href="/shop-products" legacyBehavior>
             <a
               style={{
                 display: "flex",
