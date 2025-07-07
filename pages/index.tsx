@@ -151,28 +151,37 @@ const Landing = () => {
                     justifyContent: isWide ? "flex-start" : "center",
                   }}
                 >
-                  <a
-                    href="/"
+                  <button
+                    onClick={() => handleUserTypeSelection("customer")}
                     style={{
-                      display: "inline-block",
-                      background: "#4a90e2",
-                      color: "#fff",
+                      background: "#fff",
+                      color: gold,
                       border: "none",
-                      borderRadius: 6,
-                      padding: "10px 20px",
-                      fontSize: 14,
-                      fontWeight: 600,
+                      borderRadius: 12,
+                      padding: "16px 32px",
+                      fontSize: 18,
+                      fontWeight: 700,
                       cursor: "pointer",
-                      textDecoration: "none",
-                      transition: "background-color 0.2s",
-                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+                      transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                      minWidth: 200,
+                      justifyContent: "center",
                     }}
-                    onClick={() => {
-                      localStorage.setItem("userType", "customer")
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "translateY(-3px)"
+                      e.currentTarget.style.boxShadow = "0 8px 30px rgba(0,0,0,0.15)"
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "translateY(0)"
+                      e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.1)"
                     }}
                   >
-                    Continue as Customer
-                  </a>
+                    <i className="fas fa-utensils"></i>
+                    Order Food
+                  </button>
                   <button
                     onClick={() => handleUserTypeSelection("merchant")}
                     style={{
@@ -353,27 +362,6 @@ const Landing = () => {
             </div>
           </div>
         </section>
-
-        <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <a
-            href="/shop-products"
-            style={{
-              display: "inline-block",
-              background: "transparent",
-              color: "#4a90e2",
-              border: "2px solid #4a90e2",
-              borderRadius: 6,
-              padding: "12px 24px",
-              fontSize: 16,
-              fontWeight: 600,
-              cursor: "pointer",
-              textDecoration: "none",
-              transition: "all 0.2s",
-            }}
-          >
-            Browse Restaurants
-          </a>
-        </div>
 
         {/* Footer */}
         <footer
