@@ -20,7 +20,15 @@ const SignIn = () => {
         data: { session },
       } = await supabase.auth.getSession()
       if (session) {
-        router.push("/")
+        // Check user type from localStorage and redirect accordingly
+        const userType = typeof window !== "undefined" ? localStorage.getItem("userType") : null
+        if (userType === "merchant") {
+          localStorage.removeItem("userType")
+          router.push("/dashboard")
+        } else {
+          if (userType) localStorage.removeItem("userType")
+          router.push("/home")
+        }
       }
     }
     checkUser()
@@ -56,7 +64,7 @@ const SignIn = () => {
           router.push("/dashboard")
         } else {
           if (userType) localStorage.removeItem("userType")
-          router.push("/")
+          router.push("/home")
         }
       }
     } catch (error: any) {
