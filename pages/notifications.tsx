@@ -60,7 +60,7 @@ const Notifications = () => {
           boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
         }}
       >
-        <Link href="/" legacyBehavior>
+        <Link href="/home" legacyBehavior>
           <a style={{ fontSize: 22, color: "#222", marginRight: 18 }}>
             <i className="fas fa-arrow-left"></i>
           </a>
@@ -178,7 +178,7 @@ const Notifications = () => {
           zIndex: 1000,
         }}
       >
-        <Link href="/" legacyBehavior>
+        <Link href="/home" legacyBehavior>
           <a
             style={{
               display: "flex",
@@ -223,7 +223,7 @@ const Notifications = () => {
           </div>
           <span>Cart</span>
         </a>
-        <Link href="/shops-list" legacyBehavior>
+        <Link href="/shop-products" legacyBehavior>
           <a
             style={{
               display: "flex",
