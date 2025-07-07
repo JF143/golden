@@ -5,15 +5,6 @@ import Link from "next/link"
 import { supabase } from "../lib/supabaseClient"
 import { useUser } from "../lib/userContext"
 
-const categories = [
-  { name: "Breakfast", icon: "🍳" },
-  { name: "Lunch", icon: "🍱" },
-  { name: "Dinner", icon: "🍽️" },
-  { name: "Snacks", icon: "🍟" },
-  { name: "Drinks", icon: "🥤" },
-  { name: "Desserts", icon: "🍨" },
-]
-
 const useResponsive = () => {
   const [isWide, setIsWide] = React.useState(false)
   React.useEffect(() => {
@@ -25,46 +16,26 @@ const useResponsive = () => {
   return isWide
 }
 
-const ShopProducts = () => {
+const ShopsList = () => {
   const [search, setSearch] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("All")
   const isWide = useResponsive()
   const inputRef = React.useRef<HTMLInputElement>(null)
   const [showUserMenu, setShowUserMenu] = useState(false)
-  const [dbProducts, setDbProducts] = useState<any[]>([])
-  const [stallMap, setStallMap] = useState<Record<number, string>>({})
-  const [showActionModal, setShowActionModal] = useState(false)
-  const [selectedProduct, setSelectedProduct] = useState<any>(null)
-  const [actionMessage, setActionMessage] = useState<string | null>(null)
-  const [actionLoading, setActionLoading] = useState(false)
+  const [dbStalls, setDbStalls] = useState<any[]>([])
   const { user, profile, loading: userLoading, signOut } = useUser()
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      const { data, error } = await supabase
-        .from("product")
-        .select("id, product_name, unit_price, category, image_url, food_stall_id")
-      if (data) setDbProducts(data)
-    }
-    fetchProducts()
-
     const fetchStalls = async () => {
-      const { data, error } = await supabase.from("food_stall").select("id, stall_name")
-      if (data) {
-        const map: Record<number, string> = {}
-        data.forEach((stall: any) => {
-          map[stall.id] = stall.stall_name
-        })
-        setStallMap(map)
-      }
+      const { data, error } = await supabase.from("food_stall").select("id, stall_name, description, image_url, status")
+      if (data) setDbStalls(data)
     }
     fetchStalls()
   }, [])
 
-  const filteredProducts = dbProducts.filter(
-    (p) =>
-      (selectedCategory === "All" || p.category === selectedCategory) &&
-      p.product_name.toLowerCase().includes(search.toLowerCase()),
+  const filteredStalls = dbStalls.filter(
+    (stall) =>
+      stall.stall_name.toLowerCase().includes(search.toLowerCase()) ||
+      (stall.description && stall.description.toLowerCase().includes(search.toLowerCase())),
   )
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -75,74 +46,6 @@ const ShopProducts = () => {
   const handleLogout = async () => {
     await signOut()
     window.location.href = "/"
-  }
-
-  const addToCart = async (product: any) => {
-    if (!user || !profile) {
-      setActionMessage("You must be logged in to add to cart.")
-      return
-    }
-
-    try {
-      const { data: existingCartItem } = await supabase
-        .from("cart")
-        .select("id, quantity")
-        .eq("user_id", user.id)
-        .eq("product_id", product.id)
-        .single()
-
-      if (existingCartItem) {
-        const { error } = await supabase
-          .from("cart")
-          .update({
-            quantity: existingCartItem.quantity + 1,
-          })
-          .eq("id", existingCartItem.id)
-
-        if (error) {
-          setActionMessage("Failed to update cart: " + error.message)
-          return
-        }
-      } else {
-        const { error } = await supabase.from("cart").insert([
-          {
-            user_id: user.id,
-            product_id: product.id,
-            quantity: 1,
-          },
-        ])
-
-        if (error) {
-          setActionMessage("Failed to add to cart: " + error.message)
-          return
-        }
-      }
-
-      setActionMessage("Added to cart successfully!")
-    } catch (error) {
-      console.error("Error in addToCart:", error)
-      setActionMessage("Failed to add item to cart")
-    }
-  }
-
-  const addToFavorites = async (product: any) => {
-    if (!user || !profile) {
-      setActionMessage("You must be logged in to add to favorites.")
-      return
-    }
-
-    try {
-      const { error } = await supabase.from("favorites").insert([{ user_id: user.id, product_id: product.id }])
-
-      if (error) {
-        setActionMessage("Failed to add to favorites: " + error.message)
-      } else {
-        setActionMessage("Added to favorites successfully!")
-      }
-    } catch (error) {
-      console.error("Error in addToFavorites:", error)
-      setActionMessage("Failed to add to favorites")
-    }
   }
 
   return (
@@ -180,12 +83,8 @@ const ShopProducts = () => {
         >
           <div style={{ flex: 1 }}>
             <div className="greeting">
-              <h1 style={{ fontSize: isWide ? 28 : 22, fontWeight: 600, color: "#222", margin: 0 }}>
-                Browse Restaurants
-              </h1>
-              <p style={{ fontSize: isWide ? 18 : 15, color: "#555", margin: 0 }}>
-                Discover amazing food from local restaurants
-              </p>
+              <h1 style={{ fontSize: isWide ? 28 : 22, fontWeight: 600, color: "#222", margin: 0 }}>Food Stalls</h1>
+              <p style={{ fontSize: isWide ? 18 : 15, color: "#555", margin: 0 }}>Discover all available food stalls</p>
             </div>
             <form
               onSubmit={handleSearchSubmit}
@@ -203,7 +102,7 @@ const ShopProducts = () => {
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search for food or restaurants..."
+                placeholder="Search for food stalls..."
                 style={{
                   flexGrow: 1,
                   border: "none",
@@ -313,82 +212,23 @@ const ShopProducts = () => {
           </div>
         </div>
 
-        {/* Categories */}
+        {/* Stalls Grid */}
         <div style={{ marginBottom: isWide ? 24 : 16 }}>
           <h2 style={{ fontSize: isWide ? 22 : 18, fontWeight: 600, color: "#222", marginBottom: isWide ? 16 : 12 }}>
-            Categories
-          </h2>
-          <div style={{ display: "flex", gap: isWide ? 16 : 12, overflowX: "auto", paddingBottom: 4 }}>
-            <button
-              onClick={() => setSelectedCategory("All")}
-              style={{
-                background: selectedCategory === "All" ? "#E2B24A" : "#fff",
-                color: selectedCategory === "All" ? "#fff" : "#222",
-                border: "1px solid #e0e0e0",
-                borderRadius: 20,
-                padding: isWide ? "12px 20px" : "10px 16px",
-                fontSize: isWide ? 16 : 14,
-                fontWeight: 500,
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                minWidth: "fit-content",
-              }}
-            >
-              <span>🍽️</span>
-              All
-            </button>
-            {categories.map((category) => (
-              <button
-                key={category.name}
-                onClick={() => setSelectedCategory(category.name)}
-                style={{
-                  background: selectedCategory === category.name ? "#E2B24A" : "#fff",
-                  color: selectedCategory === category.name ? "#fff" : "#222",
-                  border: "1px solid #e0e0e0",
-                  borderRadius: 20,
-                  padding: isWide ? "12px 20px" : "10px 16px",
-                  fontSize: isWide ? 16 : 14,
-                  fontWeight: 500,
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  minWidth: "fit-content",
-                }}
-              >
-                <span>{category.icon}</span>
-                {category.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Products */}
-        <div style={{ marginBottom: isWide ? 24 : 16 }}>
-          <h2 style={{ fontSize: isWide ? 22 : 18, fontWeight: 600, color: "#222", marginBottom: isWide ? 16 : 12 }}>
-            {selectedCategory === "All" ? "All Products" : `${selectedCategory} Items`}
+            All Food Stalls ({filteredStalls.length})
           </h2>
           <div
             style={{
               display: "grid",
               gridTemplateColumns: isWide
-                ? "repeat(auto-fill, minmax(280px, 1fr))"
-                : "repeat(auto-fill, minmax(240px, 1fr))",
+                ? "repeat(auto-fill, minmax(320px, 1fr))"
+                : "repeat(auto-fill, minmax(280px, 1fr))",
               gap: isWide ? 20 : 16,
             }}
           >
-            {filteredProducts.map((p) => (
+            {filteredStalls.map((stall) => (
               <div
-                key={p.id}
-                onClick={() => {
-                  setSelectedProduct(p)
-                  setShowActionModal(true)
-                  setActionMessage(null)
-                }}
+                key={stall.id}
                 style={{
                   background: "#fff",
                   borderRadius: 12,
@@ -410,59 +250,72 @@ const ShopProducts = () => {
                   e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.05)"
                 }}
               >
-                <div style={{ width: "100%", paddingTop: "75%", position: "relative", background: "#f0f0f0" }}>
+                <div style={{ width: "100%", paddingTop: "60%", position: "relative", background: "#f0f0f0" }}>
                   <img
-                    src={p.image_url || "/img/food.jpg"}
-                    alt={p.product_name}
+                    src={stall.image_url || "/img/restaurant-placeholder.jpg"}
+                    alt={stall.stall_name}
                     style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover" }}
                   />
+                  {stall.status && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: 12,
+                        right: 12,
+                        background: stall.status === "open" ? "#22c55e" : "#ef4444",
+                        color: "#fff",
+                        padding: "4px 8px",
+                        borderRadius: 4,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {stall.status}
+                    </div>
+                  )}
                 </div>
                 <div
                   style={{
-                    padding: isWide ? "18px 20px" : "10px 12px",
+                    padding: isWide ? "20px" : "16px",
                     flexGrow: 1,
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: isWide ? 20 : 15,
-                      fontWeight: 600,
-                      marginBottom: 4,
-                      color: "#222",
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      minHeight: isWide ? "2.8em" : "2.4em",
-                    }}
-                  >
-                    {p.product_name}
+                  <div>
+                    <h3 style={{ fontSize: isWide ? 20 : 18, fontWeight: 600, marginBottom: 8, color: "#222" }}>
+                      {stall.stall_name}
+                    </h3>
+                    <p style={{ fontSize: isWide ? 15 : 14, color: "#666", margin: 0, lineHeight: 1.5 }}>
+                      {stall.description || "Delicious food awaits you at this amazing stall!"}
+                    </p>
                   </div>
                   <div
-                    style={{
-                      fontSize: isWide ? 16 : 13,
-                      color: "#aaa",
-                      marginBottom: 6,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
+                    style={{ marginTop: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}
                   >
-                    {stallMap[p.food_stall_id] || "—"}
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginTop: "auto",
-                    }}
-                  >
-                    <div style={{ fontSize: isWide ? 18 : 15, color: "#222", fontWeight: 700 }}>₱{p.unit_price}</div>
+                    <button
+                      style={{
+                        background: "#E2B24A",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 6,
+                        padding: "8px 16px",
+                        fontSize: 14,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        transition: "background-color 0.2s",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "#d4a043")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "#E2B24A")}
+                    >
+                      View Menu
+                    </button>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#666", fontSize: 14 }}>
+                      <i className="fas fa-star" style={{ color: "#fbbf24" }}></i>
+                      <span>4.5</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -529,7 +382,7 @@ const ShopProducts = () => {
               <span>Cart</span>
             </a>
           </Link>
-          <Link href="/shop-products" legacyBehavior>
+          <Link href="/shops-list" legacyBehavior>
             <a
               style={{
                 display: "flex",
@@ -594,117 +447,8 @@ const ShopProducts = () => {
           </Link>
         </nav>
       </div>
-
-      {/* Action Modal for Add to Cart / Favorites */}
-      {showActionModal && selectedProduct && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.4)",
-            zIndex: 2000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 12,
-              padding: 32,
-              minWidth: 320,
-              boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
-              textAlign: "center",
-              color: "#222",
-            }}
-          >
-            <h3 style={{ marginBottom: 18, color: "#222" }}>{selectedProduct.product_name}</h3>
-            <p style={{ color: "#222" }}>What would you like to do?</p>
-            {actionMessage && (
-              <div
-                style={{
-                  color: actionMessage.includes("success") ? "#006421" : "#c72a00",
-                  background: actionMessage.includes("success") ? "#e6ffed" : "#ffebe6",
-                  border: "1px solid",
-                  borderColor: actionMessage.includes("success") ? "#a3e2b4" : "#ffc4b3",
-                  padding: "10px",
-                  borderRadius: 6,
-                  margin: "10px 0",
-                }}
-              >
-                {actionMessage}
-              </div>
-            )}
-            <div style={{ marginTop: 28, display: "flex", justifyContent: "center", gap: 18 }}>
-              <button
-                style={{
-                  padding: "10px 24px",
-                  borderRadius: 8,
-                  border: "none",
-                  background: "#E2B24A",
-                  color: "#fff",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-                disabled={actionLoading}
-                onClick={async () => {
-                  setActionLoading(true)
-                  setActionMessage(null)
-                  await addToCart(selectedProduct)
-                  setActionLoading(false)
-                }}
-              >
-                Add to Cart
-              </button>
-              <button
-                style={{
-                  padding: "10px 24px",
-                  borderRadius: 8,
-                  border: "none",
-                  background: "#E2B24A",
-                  color: "#fff",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-                disabled={actionLoading}
-                onClick={async () => {
-                  setActionLoading(true)
-                  setActionMessage(null)
-                  await addToFavorites(selectedProduct)
-                  setActionLoading(false)
-                }}
-              >
-                Add to Favorites
-              </button>
-              <button
-                style={{
-                  padding: "10px 24px",
-                  borderRadius: 8,
-                  border: "none",
-                  background: "#eee",
-                  color: "#333",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-                onClick={() => {
-                  setShowActionModal(false)
-                  setSelectedProduct(null)
-                  setActionMessage(null)
-                }}
-                disabled={actionLoading}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
 
-export default ShopProducts
+export default ShopsList
