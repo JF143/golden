@@ -105,26 +105,7 @@ const LandingPage = () => {
             marginBottom: isWide ? "60px" : "40px",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <img
-              src="/img/golden-bites-logo.png"
-              alt="Golden Bites"
-              style={{
-                width: isWide ? "60px" : "50px",
-                height: isWide ? "60px" : "50px",
-                borderRadius: "50%",
-              }}
-            />
-            <span
-              style={{
-                fontSize: isWide ? "24px" : "20px",
-                fontWeight: "bold",
-                color: "white",
-              }}
-            >
-              Golden Bites
-            </span>
-          </div>
+          <div></div>
           <nav style={{ display: "flex", gap: "32px", alignItems: "center" }}>
             <Link
               href="/shop-products"
@@ -295,7 +276,7 @@ const LandingPage = () => {
               }}
             >
               <img
-                src="/img/golden-bites-logo.png"
+                src="/img/GOLDEN BITES LOGO.png"
                 alt="Golden Bites Logo"
                 style={{
                   width: isWide ? "250px" : "200px",
@@ -442,26 +423,7 @@ const LandingPage = () => {
             gap: "20px",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <img
-              src="/img/golden-bites-logo.png"
-              alt="Golden Bites"
-              style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "50%",
-              }}
-            />
-            <span
-              style={{
-                fontSize: "18px",
-                fontWeight: "600",
-                color: "white",
-              }}
-            >
-              Golden Bites
-            </span>
-          </div>
+          <div></div>
           <div
             style={{
               color: "rgba(255, 255, 255, 0.7)",

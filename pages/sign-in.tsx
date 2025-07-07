@@ -310,49 +310,6 @@ const SignIn = () => {
             Sign Up
           </a>
         </div>
-
-        <div style={{ textAlign: "center", marginBottom: 15, position: "relative" }}>
-          <div style={{ borderTop: "1px solid #dadde1", margin: "0 20px" }}></div>
-          <span
-            style={{
-              background: "#fff",
-              color: "#606770",
-              fontSize: 12,
-              padding: "0 15px",
-              position: "absolute",
-              top: "-8px",
-              left: "50%",
-              transform: "translateX(-50%)",
-            }}
-          >
-            OR
-          </span>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleGoogleSignIn}
-          disabled={isLoading}
-          style={{
-            width: "100%",
-            padding: "10px 0",
-            background: "#fff",
-            color: "#222",
-            border: "1px solid #d1d5db",
-            borderRadius: 6,
-            fontSize: 16,
-            fontWeight: 500,
-            cursor: isLoading ? "not-allowed" : "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-            opacity: isLoading ? 0.6 : 1,
-          }}
-        >
-          <span style={{ fontSize: 18 }}>🔍</span>
-          Continue with Google
-        </button>
       </div>
     </div>
   )

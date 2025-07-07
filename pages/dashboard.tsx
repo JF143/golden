@@ -141,6 +141,26 @@ const Dashboard = () => {
                         }}
                       >
                         <button
+                          onClick={() => alert('Edit Shop Name feature coming soon!')}
+                          style={{
+                            width: "100%",
+                            textAlign: "left",
+                            padding: "8px 16px",
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: 14,
+                            color: "#222",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            fontWeight: 600,
+                          }}
+                        >
+                          <i className="fas fa-pen"></i>
+                          Edit Shop Name
+                        </button>
+                        <button
                           onClick={async () => {
                             setShowUserMenu(false)
                             await signOut()

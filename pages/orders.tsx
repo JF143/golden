@@ -11,13 +11,13 @@ const DARK_GOLD = "#d4a043"
 const mockOrders = [
   {
     id: 101,
-    customer: "John Doe",
-    items: ["Chicken Adobo", "Rice", "Iced Tea"],
+    customer: "Rapahel Abad",
+    items: ["Chicken Adobo"],
     total: 250,
     status: "Pending",
     time: "10:30 AM",
     phone: "+63 912 345 6789",
-    address: "Dorm A, Room 205",
+    address: "St. Cruz",
   },
   {
     id: 102,
@@ -27,7 +27,7 @@ const mockOrders = [
     status: "Preparing",
     time: "11:00 AM",
     phone: "+63 917 234 5678",
-    address: "Faculty Building, Office 301",
+    address: "Phelan Building",
   },
   {
     id: 103,
@@ -37,7 +37,7 @@ const mockOrders = [
     status: "Ready",
     time: "11:15 AM",
     phone: "+63 905 123 4567",
-    address: "Library, Study Area 2",
+    address: "Library",
   },
   {
     id: 104,
@@ -47,17 +47,17 @@ const mockOrders = [
     status: "Completed",
     time: "Yesterday",
     phone: "+63 918 765 4321",
-    address: "Cafeteria, Table 12",
+    address: "Bonoan",
   },
   {
     id: 105,
-    customer: "Miguel Torres",
+    customer: "Gian Chaves",
     items: ["Chicken Curry", "Rice"],
     total: 200,
     status: "Cancelled",
     time: "Yesterday",
     phone: "+63 920 987 6543",
-    address: "Gym Building, Locker Room",
+    address: "Alingal Bldg. 211A",
   },
 ]
 
@@ -122,7 +122,7 @@ const Orders = () => {
           <div style={{ maxWidth: 1200, margin: "0 auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0, marginBottom: 4 }}>Order Management 📋</h1>
+                <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0, marginBottom: 4 }}>Order Management</h1>
                 <p style={{ fontSize: 16, opacity: 0.9, margin: 0 }}>Track and manage all your restaurant orders</p>
               </div>
               <div style={{ display: "flex", gap: 12 }}>
@@ -193,7 +193,6 @@ const Orders = () => {
                   gap: 8,
                 }}
               >
-                <i className={`fa-solid ${statusConfig[tab].icon}`}></i>
                 {tab}
                 <span
                   style={{
