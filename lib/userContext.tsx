@@ -36,20 +36,24 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const getUserIdFromProfile = async (user: User): Promise<number | null> => {
     console.log('[DEBUG] getUserIdFromProfile called with user:', user);
-    let { data: userData, error: userError } = await supabase
+    let response = await supabase
       .from('user')
       .select('id')
       .eq('email', user.email)
       .single();
+    console.log('[DEBUG] Supabase response for getUserIdFromProfile:', response);
+    const { data: userData, error: userError } = response;
     if (!userData || userError) {
       console.error('[DEBUG] getUserIdFromProfile: user not found by email', userError, userData);
       // Try by username (if available)
       if (user.user_metadata?.username) {
-        const { data: userData2, error: userError2 } = await supabase
+        let response2 = await supabase
           .from('user')
           .select('id')
           .eq('username', user.user_metadata.username)
           .single();
+        console.log('[DEBUG] Supabase response for getUserIdFromProfile by username:', response2);
+        const { data: userData2, error: userError2 } = response2;
         if (userData2 && !userError2) return userData2.id;
         if (userError2) console.error('[DEBUG] getUserIdFromProfile: user not found by username', userError2, userData2);
       }
