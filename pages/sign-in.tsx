@@ -20,15 +20,29 @@ const SignIn = () => {
         const {
           data: { session },
         } = await supabase.auth.getSession()
-        if (session) {
-          // Check user type from localStorage and redirect accordingly
+
+        if (session?.user) {
+          console.log("User already logged in, checking profile...")
+
+          // Get user profile to determine redirect
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("user_type")
+            .eq("id", session.user.id)
+            .single()
+
+          console.log("User profile:", profile)
+
+          // Check user type from localStorage first, then profile
           const userType = typeof window !== "undefined" ? localStorage.getItem("userType") : null
-          if (userType === "merchant") {
-            localStorage.removeItem("userType")
-            router.push("/dashboard")
+          const redirectUserType = userType || profile?.user_type
+
+          if (redirectUserType === "shop") {
+            if (userType) localStorage.removeItem("userType")
+            window.location.href = "/dashboard"
           } else {
             if (userType) localStorage.removeItem("userType")
-            router.push("/home")
+            window.location.href = "/home"
           }
         }
       } catch (error) {
@@ -36,7 +50,7 @@ const SignIn = () => {
       }
     }
     checkUser()
-  }, [router])
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,6 +60,7 @@ const SignIn = () => {
     try {
       console.log("Starting sign in process...")
 
+      // Sign in with Supabase
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password,
@@ -58,19 +73,37 @@ const SignIn = () => {
       }
 
       if (data.user) {
-        console.log("Sign in successful, redirecting...")
+        console.log("Sign in successful, getting user profile...")
+
+        // Get user profile to determine user type
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("user_type")
+          .eq("id", data.user.id)
+          .single()
+
+        console.log("Profile data:", profile, "Profile error:", profileError)
 
         // Small delay to ensure session is properly set
-        await new Promise((resolve) => setTimeout(resolve, 500))
+        await new Promise((resolve) => setTimeout(resolve, 1000))
 
-        // Check user type and redirect accordingly
-        const userType = typeof window !== "undefined" ? localStorage.getItem("userType") : null
+        // Check user type from localStorage first (from landing page selection)
+        const selectedUserType = typeof window !== "undefined" ? localStorage.getItem("userType") : null
+        const userType = selectedUserType || profile?.user_type || "customer"
 
-        if (userType === "merchant") {
+        console.log("Redirecting user type:", userType)
+
+        // Clean up localStorage
+        if (selectedUserType) {
           localStorage.removeItem("userType")
+        }
+
+        // Redirect based on user type
+        if (userType === "shop") {
+          console.log("Redirecting to dashboard...")
           window.location.href = "/dashboard"
         } else {
-          if (userType) localStorage.removeItem("userType")
+          console.log("Redirecting to home...")
           window.location.href = "/home"
         }
       }
