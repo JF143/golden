@@ -27,16 +27,15 @@ const Cart = () => {
 
   useEffect(() => {
     const fetchCart = async () => {
+      console.log('[DEBUG] fetchCart called. user:', user, 'profile:', profile, 'userLoading:', userLoading);
       if (userLoading) return;
-      
       setLoading(true);
       if (!user || !profile) {
+        console.warn('[DEBUG] No user or profile, skipping cart fetch.');
         setLoading(false);
         return;
       }
-
       try {
-        // Fetch cart items for this user, join product info
         const { data: cartData, error } = await supabase
           .from('cart')
           .select(`
@@ -51,19 +50,18 @@ const Cart = () => {
             )
           `)
           .eq('user_id', user.id);
-
         if (error) {
-          console.error('Error fetching cart:', error);
+          console.error('[DEBUG] Error fetching cart:', error);
         } else if (cartData) {
+          console.log('[DEBUG] Cart data fetched:', cartData);
           setCart(cartData);
         }
       } catch (error) {
-        console.error('Error in fetchCart:', error);
+        console.error('[DEBUG] Error in fetchCart:', error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchCart();
   }, [user, profile, userLoading]);
 

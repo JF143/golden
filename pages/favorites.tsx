@@ -27,16 +27,15 @@ const Favorites = () => {
 
   useEffect(() => {
     const fetchFavorites = async () => {
+      console.log('[DEBUG] fetchFavorites called. user:', user, 'profile:', profile, 'userLoading:', userLoading);
       if (userLoading) return;
-      
       setLoading(true);
       if (!user || !profile) {
+        console.warn('[DEBUG] No user or profile, skipping favorites fetch.');
         setLoading(false);
         return;
       }
-
       try {
-        // Fetch favorites for this user, join product info
         const { data: favData, error } = await supabase
           .from('favorites')
           .select(`
@@ -50,19 +49,18 @@ const Favorites = () => {
             )
           `)
           .eq('user_id', user.id);
-
         if (error) {
-          console.error('Error fetching favorites:', error);
+          console.error('[DEBUG] Error fetching favorites:', error);
         } else if (favData) {
+          console.log('[DEBUG] Favorites data fetched:', favData);
           setFavorites(favData);
         }
       } catch (error) {
-        console.error('Error in fetchFavorites:', error);
+        console.error('[DEBUG] Error in fetchFavorites:', error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchFavorites();
   }, [user, profile, userLoading]);
 

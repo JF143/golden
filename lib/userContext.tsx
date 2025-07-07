@@ -35,6 +35,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   const getUserIdFromProfile = async (user: User): Promise<number | null> => {
+    console.log('[DEBUG] getUserIdFromProfile called with user:', user);
     // Try by email first
     let { data: userData, error: userError } = await supabase
       .from('user')
@@ -42,6 +43,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .eq('email', user.email)
       .single();
     if (!userData || userError) {
+      console.error('[DEBUG] getUserIdFromProfile: user not found by email', userError);
       // Try by username (if available)
       if (user.user_metadata?.username) {
         const { data: userData2, error: userError2 } = await supabase
@@ -50,6 +52,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .eq('username', user.user_metadata.username)
           .single();
         if (userData2 && !userError2) return userData2.id;
+        if (userError2) console.error('[DEBUG] getUserIdFromProfile: user not found by username', userError2);
       }
       return null;
     }
@@ -57,9 +60,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const fetchUserProfile = async (user: User) => {
+    console.log('[DEBUG] fetchUserProfile called with user:', user);
     try {
       const userId = await getUserIdFromProfile(user);
       if (!userId) {
+        console.error('[DEBUG] fetchUserProfile: No userId found');
         setProfile(null);
         return;
       }
@@ -71,13 +76,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
-        console.error('Error fetching user profile:', error);
+        console.error('[DEBUG] Error fetching user profile:', error);
         setProfile(null);
       } else {
+        console.log('[DEBUG] Profile data fetched:', profileData);
         setProfile(profileData);
       }
     } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
+      console.error('[DEBUG] Error in fetchUserProfile:', error);
       setProfile(null);
     }
   };
@@ -95,6 +101,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    console.log('[DEBUG] UserProvider useEffect: user', user, 'loading', loading);
     // Get initial session
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
