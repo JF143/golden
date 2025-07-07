@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Head from "next/head"
 import { useRouter } from "next/router"
+import { useUser } from "../lib/userContext"
 
 const GOLD = "#E2B24A"
 const LIGHT_GOLD = "#fff7e0"
@@ -30,6 +31,8 @@ const mockQuickActions = [
 
 const Dashboard = () => {
   const router = useRouter()
+  const { user, profile, signOut } = useUser()
+  const [showUserMenu, setShowUserMenu] = useState(false)
   const [currentTime, setCurrentTime] = useState("")
 
   useEffect(() => {
@@ -88,21 +91,82 @@ const Dashboard = () => {
           <div style={{ maxWidth: 1200, margin: "0 auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <div>
-                <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0, marginBottom: 4 }}>Welcome back, Chef! 👨‍🍳</h1>
+                <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0, marginBottom: 4 }}>Welcome back, {profile ? (profile.first_name || profile.username) : 'Chef'}!</h1>
                 <p style={{ fontSize: 16, opacity: 0.9, margin: 0 }}>
                   Here's what's happening with your restaurant today
                 </p>
               </div>
-              <div style={{ textAlign: "right" }}>
+              <div style={{ textAlign: "right", position: "relative" }}>
                 <div style={{ fontSize: 24, fontWeight: 600 }}>{currentTime}</div>
-                <div style={{ fontSize: 14, opacity: 0.8 }}>
-                  {new Date().toLocaleDateString("en-US", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </div>
+                {user && (
+                  <div style={{ position: "absolute", top: 0, right: 0 }}>
+                    <button
+                      onClick={() => setShowUserMenu(!showUserMenu)}
+                      style={{
+                        background: "#f7f7f7",
+                        border: "none",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        padding: "8px 12px",
+                        borderRadius: 8,
+                        marginTop: 8,
+                        marginRight: 0,
+                      }}
+                    >
+                      <img
+                        src="/img/profile.jpg"
+                        alt="Profile"
+                        style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }}
+                      />
+                      <span style={{ fontSize: 16, color: "#222", fontWeight: 500 }}>
+                        {profile ? `${profile.first_name || profile.username}` : user.email}
+                      </span>
+                      <i className="fas fa-chevron-down" style={{ fontSize: 12, color: "#666" }}></i>
+                    </button>
+                    {showUserMenu && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "100%",
+                          right: 0,
+                          background: "#fff",
+                          borderRadius: 8,
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                          padding: "8px 0",
+                          minWidth: 160,
+                          zIndex: 1001,
+                          marginTop: 4,
+                        }}
+                      >
+                        <button
+                          onClick={async () => {
+                            setShowUserMenu(false)
+                            await signOut()
+                            window.location.href = "/"
+                          }}
+                          style={{
+                            width: "100%",
+                            textAlign: "left",
+                            padding: "8px 16px",
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: 14,
+                            color: "#666",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                          }}
+                        >
+                          <i className="fas fa-sign-out-alt"></i>
+                          Sign Out
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

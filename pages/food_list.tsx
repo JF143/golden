@@ -1,72 +1,57 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Head from "next/head"
 import { useRouter } from "next/router"
+import { supabase } from "../lib/supabaseClient"
+import { useUser } from "../lib/userContext"
 
 const GOLD = "#E2B24A"
 const LIGHT_GOLD = "#fff7e0"
 const DARK_GOLD = "#d4a043"
 
-const mockMenuItems = [
-  {
-    id: 1,
-    name: "Chicken Adobo",
-    description: "Traditional Filipino braised chicken in soy sauce and vinegar",
-    price: 180,
-    category: "Main Course",
-    available: true,
-    image: null,
-    prepTime: "15 min",
-    popularity: 95,
-  },
-  {
-    id: 2,
-    name: "Leche Flan",
-    description: "Creamy caramel custard dessert",
-    price: 80,
-    category: "Dessert",
-    available: true,
-    image: null,
-    prepTime: "5 min",
-    popularity: 88,
-  },
-  {
-    id: 3,
-    name: "Pancit Canton",
-    description: "Stir-fried noodles with vegetables and meat",
-    price: 120,
-    category: "Main Course",
-    available: false,
-    image: null,
-    prepTime: "12 min",
-    popularity: 92,
-  },
-  {
-    id: 4,
-    name: "Halo-Halo",
-    description: "Mixed shaved ice dessert with various toppings",
-    price: 150,
-    category: "Dessert",
-    available: true,
-    image: null,
-    prepTime: "8 min",
-    popularity: 90,
-  },
-]
-
 const categories = ["All", "Main Course", "Dessert", "Beverages", "Appetizers"]
 
 const FoodList = () => {
   const router = useRouter()
+  const { user, profile, loading: userLoading } = useUser()
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [searchTerm, setSearchTerm] = useState("")
+  const [menuItems, setMenuItems] = useState<any[]>([])
+  const [stallId, setStallId] = useState<number | null>(null)
 
-  const filteredItems = mockMenuItems.filter((item) => {
+  useEffect(() => {
+    // Fetch the user's food stall id
+    const fetchStallId = async () => {
+      if (!user) return
+      const { data: stall, error } = await supabase
+        .from("food_stall")
+        .select("id")
+        .eq("owner_id", user.id)
+        .single()
+      if (stall) setStallId(stall.id)
+    }
+    fetchStallId()
+  }, [user])
+
+  useEffect(() => {
+    // Fetch products for this stall
+    const fetchMenuItems = async () => {
+      if (!stallId) return
+      const { data, error } = await supabase
+        .from("product")
+        .select("id, product_name, unit_price, category, image_url, details, ingredients, food_stall_id")
+        .eq("food_stall_id", stallId)
+      if (data) setMenuItems(data)
+    }
+    fetchMenuItems()
+  }, [stallId])
+
+  const filteredItems = menuItems.filter((item) => {
     const matchesCategory = selectedCategory === "All" || item.category === selectedCategory
     const matchesSearch =
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase())
+      item.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.details && item.details.toLowerCase().includes(searchTerm.toLowerCase()))
     return matchesCategory && matchesSearch
   })
 
@@ -117,28 +102,6 @@ const FoodList = () => {
                   Manage your restaurant's menu items and availability
                 </p>
               </div>
-              <button
-                onClick={() => router.push("/add-item")}
-                style={{
-                  background: "#fff",
-                  color: GOLD,
-                  border: "none",
-                  borderRadius: 12,
-                  padding: "12px 24px",
-                  fontSize: 16,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  transition: "transform 0.2s ease",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
-                onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
-              >
-                <i className="fa-solid fa-plus"></i>
-                Add New Item
-              </button>
             </div>
           </div>
         </div>
@@ -183,6 +146,7 @@ const FoodList = () => {
                         fontSize: 16,
                         outline: "none",
                         transition: "border-color 0.2s ease",
+                        background: "#fff",
                       }}
                       onFocus={(e) => (e.currentTarget.style.borderColor = GOLD)}
                       onBlur={(e) => (e.currentTarget.style.borderColor = "#f0f0f0")}
@@ -233,7 +197,7 @@ const FoodList = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
               gap: 24,
             }}
           >
@@ -241,67 +205,26 @@ const FoodList = () => {
               <div
                 key={item.id}
                 style={{
-                  background: "#fff",
-                  borderRadius: 16,
+                  background: item.available ? LIGHT_GOLD : "#f8f8f8",
+                  borderRadius: 18,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                  padding: 0,
+                  marginBottom: 16,
+                  border: item.available ? `1.5px solid ${GOLD}` : "1.5px solid #eee",
+                  position: "relative",
                   overflow: "hidden",
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
-                  border: "1px solid #f0f0f0",
-                  transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                  opacity: item.available ? 1 : 0.7,
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-4px)"
-                  e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.12)"
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)"
-                  e.currentTarget.style.boxShadow = "0 8px 32px rgba(0,0,0,0.08)"
+                  display: "flex",
+                  flexDirection: "column",
+                  minHeight: 260,
                 }}
               >
-                {/* Image Placeholder */}
-                <div
-                  style={{
-                    height: 200,
-                    background: `linear-gradient(135deg, ${LIGHT_GOLD}, #f8f9fa)`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    position: "relative",
-                  }}
-                >
-                  <i className="fa-solid fa-utensils" style={{ fontSize: 48, color: GOLD, opacity: 0.5 }}></i>
-                  {!item.available && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 16,
-                        right: 16,
-                        background: "#dc3545",
-                        color: "#fff",
-                        padding: "4px 12px",
-                        borderRadius: 20,
-                        fontSize: 12,
-                        fontWeight: 600,
-                      }}
-                    >
-                      Unavailable
-                    </div>
+                {/* Menu Item Image */}
+                <div style={{ width: "100%", height: 140, background: "#f3f3f3", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {item.image_url ? (
+                    <img src={item.image_url} alt={item.product_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <i className="fa-solid fa-utensils" style={{ fontSize: 48, color: GOLD, opacity: 0.25 }}></i>
                   )}
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 16,
-                      left: 16,
-                      background: "rgba(255,255,255,0.9)",
-                      padding: "4px 8px",
-                      borderRadius: 12,
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: "#666",
-                    }}
-                  >
-                    {item.category}
-                  </div>
                 </div>
 
                 {/* Content */}
@@ -314,11 +237,11 @@ const FoodList = () => {
                       marginBottom: 12,
                     }}
                   >
-                    <h3 style={{ fontSize: 20, fontWeight: 700, color: "#222", margin: 0, flex: 1 }}>{item.name}</h3>
-                    <div style={{ fontSize: 24, fontWeight: 700, color: GOLD }}>₱{item.price}</div>
+                    <h3 style={{ fontSize: 20, fontWeight: 700, color: "#222", margin: 0, flex: 1 }}>{item.product_name}</h3>
+                    <div style={{ fontSize: 24, fontWeight: 700, color: GOLD }}>₱{item.unit_price}</div>
                   </div>
 
-                  <p style={{ fontSize: 14, color: "#666", lineHeight: 1.5, marginBottom: 16 }}>{item.description}</p>
+                  <p style={{ fontSize: 14, color: "#666", lineHeight: 1.5, marginBottom: 16 }}>{item.details}</p>
 
                   <div style={{ display: "flex", gap: 16, marginBottom: 20, fontSize: 12, color: "#888" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>

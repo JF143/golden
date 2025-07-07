@@ -6,12 +6,12 @@ import { supabase } from "../lib/supabaseClient"
 import { useUser } from "../lib/userContext"
 
 const categories = [
-  { name: "Breakfast", icon: "🍳" },
-  { name: "Lunch", icon: "🍱" },
-  { name: "Dinner", icon: "🍽️" },
-  { name: "Snacks", icon: "🍟" },
-  { name: "Drinks", icon: "🥤" },
-  { name: "Desserts", icon: "🍨" },
+  { name: "Breakfast", icon: <i className="fas fa-mug-hot"></i> },
+  { name: "Lunch", icon: <i className="fas fa-hamburger"></i> },
+  { name: "Dinner", icon: <i className="fas fa-drumstick-bite"></i> },
+  { name: "Snacks", icon: <i className="fas fa-cookie-bite"></i> },
+  { name: "Drinks", icon: <i className="fas fa-coffee"></i> },
+  { name: "Desserts", icon: <i className="fas fa-ice-cream"></i> },
 ]
 
 const promotions = [
@@ -116,8 +116,9 @@ const Home = () => {
   }
 
   const handleLogout = async () => {
-    await signOut()
-    window.location.href = "/"
+    setShowUserMenu(false);
+    await signOut();
+    window.location.href = "/";
   }
 
   const addToCart = async (product: any) => {
@@ -276,7 +277,7 @@ const Home = () => {
           </div>
           <div style={{ position: "relative" }}>
             {user ? (
-              <div style={{ position: "relative" }}>
+              <div style={{ position: "relative", display: "flex", alignItems: "flex-start", height: "100%" }}>
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   style={{
@@ -381,7 +382,7 @@ const Home = () => {
                 minWidth: "fit-content",
               }}
             >
-              <span>🍽️</span>
+              <i className="fas fa-utensils"></i>
               All
             </button>
             {categories.map((category) => (
@@ -404,7 +405,7 @@ const Home = () => {
                   minWidth: "fit-content",
                 }}
               >
-                <span>{category.icon}</span>
+                {category.icon}
                 {category.name}
               </button>
             ))}
@@ -605,7 +606,7 @@ const Home = () => {
               <span>Cart</span>
             </a>
           </Link>
-          <Link href="/shop-products" legacyBehavior>
+          <Link href="/shop_products" legacyBehavior>
             <a
               style={{
                 display: "flex",
