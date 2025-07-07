@@ -98,14 +98,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
+    window.location.href = '/welcome'; // Redirect after sign out
   };
 
   useEffect(() => {
-    console.log('[DEBUG] UserProvider useEffect: user', user, 'loading', loading);
-    // Get initial session
+    let isMounted = true;
+    setLoading(true);
+
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
+      if (session?.user && isMounted) {
         setUser(session.user);
         await fetchUserProfile(session.user);
       }
@@ -114,13 +116,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     getInitialSession();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (session?.user) {
+        if (session?.user && isMounted) {
           setUser(session.user);
           await fetchUserProfile(session.user);
-        } else {
+        } else if (isMounted) {
           setUser(null);
           setProfile(null);
         }
@@ -128,8 +129,24 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (loading) {
+        setLoading(false);
+        if (!user || !profile) {
+          console.error('[DEBUG] Loading timeout: user or profile missing');
+        }
+      }
+    }, 5000); // 5 seconds
+
+    return () => clearTimeout(timeout);
+  }, [loading, user, profile]);
 
   const value = {
     user,
