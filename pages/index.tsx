@@ -33,15 +33,19 @@ const LandingPage = () => {
   }, [user, profile, router])
 
   const handleOrderFood = () => {
-    router.push("/sign-in?type=customer")
+    // Set user type in localStorage and redirect to sign-in
+    if (typeof window !== "undefined") {
+      localStorage.setItem("userType", "customer")
+    }
+    router.push("/sign-in")
   }
 
   const handleSellFood = () => {
-    router.push("/sign-in?type=shop")
-  }
-
-  const handleBrowseRestaurants = () => {
-    router.push("/shop-products")
+    // Set user type in localStorage and redirect to sign-in
+    if (typeof window !== "undefined") {
+      localStorage.setItem("userType", "shop")
+    }
+    router.push("/sign-in")
   }
 
   return (
@@ -225,9 +229,6 @@ const LandingPage = () => {
                   fontSize: "18px",
                   fontWeight: "600",
                   cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
                   transition: "all 0.3s ease",
                   boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
@@ -240,7 +241,7 @@ const LandingPage = () => {
                   e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)"
                 }}
               >
-                🍽️ Order Food
+                Order Food
               </button>
 
               <button
@@ -254,9 +255,6 @@ const LandingPage = () => {
                   fontSize: "18px",
                   fontWeight: "600",
                   cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
                   transition: "all 0.3s ease",
                 }}
                 onMouseEnter={(e) => {
@@ -268,50 +266,12 @@ const LandingPage = () => {
                   e.currentTarget.style.color = "white"
                 }}
               >
-                🏪 Sell Food
-              </button>
-            </div>
-
-            {/* Browse Option */}
-            <div style={{ marginTop: "24px" }}>
-              <p
-                style={{
-                  color: "rgba(255, 255, 255, 0.8)",
-                  fontSize: "16px",
-                  marginBottom: "12px",
-                }}
-              >
-                Or browse restaurants:
-              </p>
-              <button
-                onClick={handleBrowseRestaurants}
-                style={{
-                  background: "rgba(255, 255, 255, 0.2)",
-                  color: "white",
-                  border: "1px solid rgba(255, 255, 255, 0.3)",
-                  padding: "12px 24px",
-                  borderRadius: "8px",
-                  fontSize: "16px",
-                  fontWeight: "500",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  transition: "all 0.3s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(255, 255, 255, 0.3)"
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)"
-                }}
-              >
-                🔍 Browse Restaurants
+                Sell Food
               </button>
             </div>
           </div>
 
-          {/* Right Content - Delivery Icon */}
+          {/* Right Content - Golden Bites Logo */}
           <div
             style={{
               flex: isWide ? "0 0 400px" : "none",
@@ -330,16 +290,20 @@ const LandingPage = () => {
                 justifyContent: "center",
                 alignItems: "center",
                 position: "relative",
+                backdropFilter: "blur(10px)",
+                border: "2px solid rgba(255, 255, 255, 0.2)",
               }}
             >
-              <div
+              <img
+                src="/img/golden-bites-logo.png"
+                alt="Golden Bites Logo"
                 style={{
-                  fontSize: isWide ? "120px" : "100px",
+                  width: isWide ? "250px" : "200px",
+                  height: isWide ? "250px" : "200px",
+                  borderRadius: "50%",
                   filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.1))",
                 }}
-              >
-                🚴‍♂️
-              </div>
+              />
             </div>
           </div>
         </main>
