@@ -1,14 +1,13 @@
-import React from "react";
-import Head from "next/head";
-// If you ever add a navbar here, use the following for the cart button:
-// import { useRouter } from "next/router";
-// const router = useRouter();
-// <a href="/cart" onClick={e => { e.preventDefault(); router.push('/cart'); }}>...</a>
+"use client"
+import Head from "next/head"
 
 const Welcome = () => (
   <>
     <Head>
-      <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@700&family=Glacial+Indifference:wght@400;700&display=swap" rel="stylesheet" />
+      <link
+        href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@700&family=Glacial+Indifference:wght@400;700&display=swap"
+        rel="stylesheet"
+      />
     </Head>
     <div
       style={{
@@ -53,7 +52,14 @@ const Welcome = () => (
         <img
           src="/img/GOLDEN BITES LOGO.png"
           alt="Golden Bites Logo"
-          style={{ width: 90, height: 90, objectFit: "contain", marginBottom: 24, borderRadius: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
+          style={{
+            width: 90,
+            height: 90,
+            objectFit: "contain",
+            marginBottom: 24,
+            borderRadius: 16,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+          }}
         />
         <div
           style={{
@@ -97,7 +103,7 @@ const Welcome = () => (
             letterSpacing: 1,
             transition: "background 0.2s, color 0.2s",
           }}
-          onClick={() => window.location.href = "/landing"}
+          onClick={() => (window.location.href = "/landing")}
         >
           CONTINUE
         </button>
@@ -135,6 +141,6 @@ const Welcome = () => (
       />
     </div>
   </>
-);
+)
 
-export default Welcome; 
+export default Welcome
