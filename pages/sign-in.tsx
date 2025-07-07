@@ -16,19 +16,23 @@ const SignIn = () => {
   // Check if user is already logged in
   useEffect(() => {
     const checkUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      if (session) {
-        // Check user type from localStorage and redirect accordingly
-        const userType = typeof window !== "undefined" ? localStorage.getItem("userType") : null
-        if (userType === "merchant") {
-          localStorage.removeItem("userType")
-          router.push("/dashboard")
-        } else {
-          if (userType) localStorage.removeItem("userType")
-          router.push("/home")
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        if (session) {
+          // Check user type from localStorage and redirect accordingly
+          const userType = typeof window !== "undefined" ? localStorage.getItem("userType") : null
+          if (userType === "merchant") {
+            localStorage.removeItem("userType")
+            router.push("/dashboard")
+          } else {
+            if (userType) localStorage.removeItem("userType")
+            router.push("/home")
+          }
         }
+      } catch (error) {
+        console.error("Error checking user session:", error)
       }
     }
     checkUser()
@@ -56,15 +60,18 @@ const SignIn = () => {
       if (data.user) {
         console.log("Sign in successful, redirecting...")
 
+        // Small delay to ensure session is properly set
+        await new Promise((resolve) => setTimeout(resolve, 500))
+
         // Check user type and redirect accordingly
         const userType = typeof window !== "undefined" ? localStorage.getItem("userType") : null
 
         if (userType === "merchant") {
           localStorage.removeItem("userType")
-          router.push("/dashboard")
+          window.location.href = "/dashboard"
         } else {
           if (userType) localStorage.removeItem("userType")
-          router.push("/home")
+          window.location.href = "/home"
         }
       }
     } catch (error: any) {
