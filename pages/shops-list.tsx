@@ -1,67 +1,69 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
-import Link from "next/link"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/router"
 import { supabase } from "../lib/supabaseClient"
 import { useUser } from "../lib/userContext"
 
-const useResponsive = () => {
-  const [isWide, setIsWide] = React.useState(false)
-  React.useEffect(() => {
-    const check = () => setIsWide(window.innerWidth >= 1100)
-    check()
-    window.addEventListener("resize", check)
-    return () => window.removeEventListener("resize", check)
-  }, [])
-  return isWide
+interface Shop {
+  id: string
+  name: string
+  description: string
+  image_url: string
+  rating: number
+  delivery_time: string
+  delivery_fee: number
+  category: string
+  is_open: boolean
+  created_at: string
 }
 
 const ShopsList = () => {
-  const [search, setSearch] = useState("")
-  const [shops, setShops] = useState<any[]>([])
+  const [shops, setShops] = useState<Shop[]>([])
   const [loading, setLoading] = useState(true)
-  const isWide = useResponsive()
+  const [error, setError] = useState("")
+  const router = useRouter()
   const { user, profile } = useUser()
 
   useEffect(() => {
-    const fetchShops = async () => {
-      try {
-        // Only fetch shops owned by the current user if they're a shop owner
-        let query = supabase.from("food_stall").select("*")
-
-        if (user && profile?.user_type === "shop") {
-          query = query.eq("owner_id", user.id)
-        }
-
-        const { data, error } = await query
-
-        if (error) {
-          console.error("Error fetching shops:", error)
-        } else {
-          setShops(data || [])
-        }
-      } catch (error) {
-        console.error("Error in fetchShops:", error)
-      } finally {
-        setLoading(false)
-      }
+    // Check if user is authenticated and is a shop owner
+    if (!user) {
+      router.push("/sign-in")
+      return
     }
 
-    if (user) {
-      fetchShops()
-    } else {
+    if (profile && profile.user_type !== "shop") {
+      router.push("/home")
+      return
+    }
+
+    fetchShops()
+  }, [user, profile, router])
+
+  const fetchShops = async () => {
+    try {
+      setLoading(true)
+      const { data, error } = await supabase.from("shops").select("*").order("created_at", { ascending: false })
+
+      if (error) {
+        throw error
+      }
+
+      setShops(data || [])
+    } catch (error: any) {
+      console.error("Error fetching shops:", error)
+      setError(error.message || "Failed to load shops")
+    } finally {
       setLoading(false)
     }
-  }, [user, profile])
+  }
 
-  const filteredShops = shops.filter(
-    (shop) =>
-      shop.stall_name.toLowerCase().includes(search.toLowerCase()) ||
-      (shop.description && shop.description.toLowerCase().includes(search.toLowerCase())),
-  )
+  const handleShopClick = (shopId: string) => {
+    router.push(`/shop/${shopId}`)
+  }
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleBackToDashboard = () => {
+    router.push("/dashboard")
   }
 
   if (loading) {
@@ -70,429 +72,237 @@ const ShopsList = () => {
         style={{
           minHeight: "100vh",
           display: "flex",
-          alignItems: "center",
           justifyContent: "center",
-          background: "#f7f7f7",
+          alignItems: "center",
+          background: "#f5f5f5",
         }}
       >
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 18, color: "#666" }}>Loading your shops...</div>
+          <div
+            style={{
+              width: "50px",
+              height: "50px",
+              border: "3px solid #f3f3f3",
+              borderTop: "3px solid #E2B24A",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+              margin: "0 auto 20px",
+            }}
+          />
+          <p style={{ color: "#666", fontSize: "16px" }}>Loading shops...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div style={{ background: "#f7f7f7", minHeight: "100vh" }}>
-      <div
+    <div style={{ minHeight: "100vh", background: "#f5f5f5" }}>
+      {/* Header */}
+      <header
         style={{
-          maxWidth: isWide ? 1400 : 900,
-          margin: "0 auto",
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          padding: isWide ? "32px 48px" : "16px 8px",
-          boxSizing: "border-box",
-          position: "relative",
+          background: "#fff",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+          padding: "20px 0",
         }}
       >
-        {/* Header */}
         <div
           style={{
-            background: "#fff",
-            borderRadius: 16,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-            margin: isWide ? "0 0 24px 0" : "0 0 16px 0",
-            padding: isWide ? "24px" : "16px",
-            position: "sticky",
-            top: 0,
-            zIndex: 1000,
+            maxWidth: "1200px",
+            margin: "0 auto",
+            padding: "0 20px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-            <h1 style={{ fontSize: isWide ? 28 : 22, fontWeight: 600, color: "#222", margin: 0 }}>My Shops</h1>
-            <div style={{ display: "flex", gap: 12 }}>
-              <Link href="/dashboard" legacyBehavior>
-                <a
-                  style={{
-                    background: "#E2B24A",
-                    color: "#fff",
-                    padding: "8px 16px",
-                    borderRadius: 8,
-                    textDecoration: "none",
-                    fontWeight: 600,
-                    fontSize: 14,
-                  }}
-                >
-                  Dashboard
-                </a>
-              </Link>
-              <button
-                style={{
-                  background: "#28a745",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 8,
-                  padding: "8px 16px",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                + Add Shop
-              </button>
-            </div>
-          </div>
-
-          <form
-            onSubmit={handleSearchSubmit}
-            style={{
-              display: "flex",
-              borderRadius: 8,
-              overflow: "hidden",
-              background: "#f7f7f7",
-              border: "1px solid #e0e0e0",
-            }}
-          >
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search your shops..."
-              style={{
-                flexGrow: 1,
-                border: "none",
-                padding: "12px 15px",
-                fontSize: isWide ? 16 : 14,
-                outline: "none",
-                background: "transparent",
-                color: "#222",
-              }}
-            />
+          <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             <button
-              type="submit"
+              onClick={handleBackToDashboard}
               style={{
-                background: "#E2B24A",
-                color: "#fff",
+                background: "none",
                 border: "none",
-                padding: "12px 20px",
-                fontSize: isWide ? 16 : 14,
+                fontSize: "24px",
                 cursor: "pointer",
-                fontWeight: 600,
+                color: "#666",
               }}
             >
-              <i className="fas fa-search"></i>
+              ←
             </button>
-          </form>
+            <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "#333", margin: 0 }}>All Shops</h1>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <img
+              src="/img/golden-bites-logo.png"
+              alt="Golden Bites"
+              style={{ width: "40px", height: "40px", borderRadius: "50%" }}
+            />
+            <span style={{ fontSize: "18px", fontWeight: "600", color: "#E2B24A" }}>Golden Bites</span>
+          </div>
         </div>
+      </header>
 
-        {/* Shops Grid */}
-        <div style={{ marginBottom: isWide ? 80 : 60 }}>
+      {/* Main Content */}
+      <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "40px 20px" }}>
+        {error && (
+          <div
+            style={{
+              background: "#fee",
+              border: "1px solid #fcc",
+              color: "#c33",
+              padding: "16px",
+              borderRadius: "8px",
+              marginBottom: "20px",
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        {shops.length === 0 ? (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "60px 20px",
+              background: "#fff",
+              borderRadius: "12px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            }}
+          >
+            <div style={{ fontSize: "64px", marginBottom: "20px" }}>🏪</div>
+            <h2 style={{ fontSize: "24px", color: "#333", marginBottom: "12px" }}>No Shops Found</h2>
+            <p style={{ color: "#666", fontSize: "16px" }}>There are currently no shops registered on the platform.</p>
+          </div>
+        ) : (
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: isWide
-                ? "repeat(auto-fill, minmax(320px, 1fr))"
-                : "repeat(auto-fill, minmax(280px, 1fr))",
-              gap: isWide ? 24 : 16,
+              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+              gap: "24px",
             }}
           >
-            {filteredShops.map((shop) => (
+            {shops.map((shop) => (
               <div
                 key={shop.id}
+                onClick={() => handleShopClick(shop.id)}
                 style={{
                   background: "#fff",
-                  borderRadius: 12,
+                  borderRadius: "12px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                   overflow: "hidden",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
                   cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  border: "1px solid #e0e0e0",
-                  display: "flex",
-                  flexDirection: "column",
-                  height: "100%",
+                  transition: "transform 0.2s ease, box-shadow 0.2s ease",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = "translateY(-4px)"
-                  e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.1)"
+                  e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.15)"
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = "translateY(0)"
-                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.05)"
+                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)"
                 }}
               >
-                <div style={{ width: "100%", paddingTop: "60%", position: "relative", background: "#f0f0f0" }}>
-                  <img
-                    src={shop.image_url || "/img/shop-placeholder.jpg"}
-                    alt={shop.stall_name}
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                </div>
+                {/* Shop Image */}
                 <div
                   style={{
-                    padding: isWide ? "20px" : "16px",
-                    flexGrow: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
+                    height: "200px",
+                    background: shop.image_url
+                      ? `url(${shop.image_url}) center/cover`
+                      : "linear-gradient(135deg, #E2B24A, #D4A043)",
+                    position: "relative",
                   }}
                 >
-                  <div>
-                    <h3
-                      style={{
-                        fontSize: isWide ? 20 : 18,
-                        fontWeight: 600,
-                        marginBottom: 8,
-                        color: "#222",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {shop.stall_name}
-                    </h3>
-                    {shop.description && (
-                      <p
-                        style={{
-                          fontSize: isWide ? 14 : 13,
-                          color: "#666",
-                          marginBottom: 12,
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {shop.description}
-                      </p>
-                    )}
-                  </div>
+                  {/* Status Badge */}
                   <div
                     style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginTop: "auto",
-                      gap: 8,
+                      position: "absolute",
+                      top: "12px",
+                      right: "12px",
+                      background: shop.is_open ? "#10b981" : "#ef4444",
+                      color: "#fff",
+                      padding: "4px 12px",
+                      borderRadius: "20px",
+                      fontSize: "12px",
+                      fontWeight: "600",
                     }}
                   >
-                    <div
+                    {shop.is_open ? "Open" : "Closed"}
+                  </div>
+                </div>
+
+                {/* Shop Info */}
+                <div style={{ padding: "20px" }}>
+                  <h3
+                    style={{
+                      fontSize: "20px",
+                      fontWeight: "600",
+                      color: "#333",
+                      marginBottom: "8px",
+                      lineHeight: "1.2",
+                    }}
+                  >
+                    {shop.name}
+                  </h3>
+
+                  <p
+                    style={{
+                      color: "#666",
+                      fontSize: "14px",
+                      marginBottom: "16px",
+                      lineHeight: "1.4",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {shop.description}
+                  </p>
+
+                  {/* Shop Details */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                      <span style={{ color: "#fbbf24", fontSize: "16px" }}>⭐</span>
+                      <span style={{ fontSize: "14px", fontWeight: "600", color: "#333" }}>{shop.rating}</span>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                      <span style={{ fontSize: "12px", color: "#666" }}>{shop.delivery_time}</span>
+                      <span style={{ fontSize: "12px", color: "#666" }}>₱{shop.delivery_fee} delivery</span>
+                    </div>
+                  </div>
+
+                  {/* Category */}
+                  <div style={{ marginTop: "12px" }}>
+                    <span
                       style={{
-                        fontSize: isWide ? 12 : 11,
-                        color: "#888",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 4,
+                        background: "#f3f4f6",
+                        color: "#374151",
+                        padding: "4px 12px",
+                        borderRadius: "20px",
+                        fontSize: "12px",
+                        fontWeight: "500",
                       }}
                     >
-                      <i className="fas fa-store" style={{ fontSize: 10 }}></i>
-                      My Shop
-                    </div>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <button
-                        style={{
-                          background: "#E2B24A",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: 6,
-                          padding: "6px 12px",
-                          fontSize: 11,
-                          fontWeight: 600,
-                          cursor: "pointer",
-                        }}
-                      >
-                        Manage
-                      </button>
-                      <button
-                        style={{
-                          background: "#6c757d",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: 6,
-                          padding: "6px 12px",
-                          fontSize: 11,
-                          fontWeight: 600,
-                          cursor: "pointer",
-                        }}
-                      >
-                        Edit
-                      </button>
-                    </div>
+                      {shop.category}
+                    </span>
                   </div>
                 </div>
               </div>
             ))}
           </div>
+        )}
+      </main>
 
-          {filteredShops.length === 0 && (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "40px 20px",
-                background: "#fff",
-                borderRadius: 12,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-              }}
-            >
-              <div style={{ fontSize: 48, marginBottom: 16 }}>🏪</div>
-              <h3 style={{ fontSize: 20, color: "#222", marginBottom: 8 }}>No shops found</h3>
-              <p style={{ color: "#666", fontSize: 14, marginBottom: 20 }}>
-                {search ? `No shops match "${search}"` : "You haven't created any shops yet"}
-              </p>
-              {!search && (
-                <button
-                  style={{
-                    background: "#28a745",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 8,
-                    padding: "12px 24px",
-                    fontSize: 16,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                  }}
-                >
-                  Create Your First Shop
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Bottom Navigation */}
-        <nav
-          style={{
-            display: "flex",
-            justifyContent: "space-around",
-            padding: "10px 0",
-            backgroundColor: "#fff",
-            borderTop: "1px solid #e0e0e0",
-            position: "fixed",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            maxWidth: isWide ? 1400 : 900,
-            margin: "0 auto",
-            zIndex: 1000,
-          }}
-        >
-          <Link href="/home" legacyBehavior>
-            <a
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                fontSize: "0.7rem",
-                color: "#555",
-                cursor: "pointer",
-                textDecoration: "none",
-                padding: "5px",
-                flex: 1,
-                textAlign: "center",
-              }}
-            >
-              <div style={{ marginBottom: "3px", fontSize: "1.2rem" }}>
-                <i className="fas fa-home"></i>
-              </div>
-              <span>Home</span>
-            </a>
-          </Link>
-          <Link href="/cart" legacyBehavior>
-            <a
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                fontSize: "0.7rem",
-                color: "#555",
-                cursor: "pointer",
-                textDecoration: "none",
-                padding: "5px",
-                flex: 1,
-                textAlign: "center",
-              }}
-            >
-              <div style={{ marginBottom: "3px", fontSize: "1.2rem" }}>
-                <i className="fas fa-shopping-cart"></i>
-              </div>
-              <span>Cart</span>
-            </a>
-          </Link>
-          <Link href="/shops-list" legacyBehavior>
-            <a
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                fontSize: "0.7rem",
-                color: "#E2B24A",
-                cursor: "pointer",
-                textDecoration: "none",
-                padding: "5px",
-                flex: 1,
-                textAlign: "center",
-              }}
-            >
-              <div style={{ marginBottom: "3px", fontSize: "1.2rem", color: "#E2B24A" }}>
-                <i className="fas fa-store"></i>
-              </div>
-              <span>Shops</span>
-            </a>
-          </Link>
-          <Link href="/favorites" legacyBehavior>
-            <a
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                fontSize: "0.7rem",
-                color: "#555",
-                cursor: "pointer",
-                textDecoration: "none",
-                padding: "5px",
-                flex: 1,
-                textAlign: "center",
-              }}
-            >
-              <div style={{ marginBottom: "3px", fontSize: "1.2rem" }}>
-                <i className="fas fa-heart"></i>
-              </div>
-              <span>Favorites</span>
-            </a>
-          </Link>
-          <Link href="/notifications" legacyBehavior>
-            <a
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                fontSize: "0.7rem",
-                color: "#555",
-                cursor: "pointer",
-                textDecoration: "none",
-                padding: "5px",
-                flex: 1,
-                textAlign: "center",
-              }}
-            >
-              <div style={{ marginBottom: "3px", fontSize: "1.2rem" }}>
-                <i className="fas fa-bell"></i>
-              </div>
-              <span>Notifications</span>
-            </a>
-          </Link>
-        </nav>
-      </div>
+      <style jsx>{`
+        @keyframes spin {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
     </div>
   )
 }
