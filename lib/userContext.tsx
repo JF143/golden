@@ -36,14 +36,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const getUserIdFromProfile = async (user: User): Promise<number | null> => {
     console.log('[DEBUG] getUserIdFromProfile called with user:', user);
-    // Try by email first
     let { data: userData, error: userError } = await supabase
       .from('user')
       .select('id')
       .eq('email', user.email)
       .single();
     if (!userData || userError) {
-      console.error('[DEBUG] getUserIdFromProfile: user not found by email', userError);
+      console.error('[DEBUG] getUserIdFromProfile: user not found by email', userError, userData);
       // Try by username (if available)
       if (user.user_metadata?.username) {
         const { data: userData2, error: userError2 } = await supabase
@@ -52,11 +51,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .eq('username', user.user_metadata.username)
           .single();
         if (userData2 && !userError2) return userData2.id;
-        if (userError2) console.error('[DEBUG] getUserIdFromProfile: user not found by username', userError2);
+        if (userError2) console.error('[DEBUG] getUserIdFromProfile: user not found by username', userError2, userData2);
       }
       return null;
     }
-    return userData.id;
+    return userData?.id ?? null;
   };
 
   const fetchUserProfile = async (user: User) => {
@@ -76,7 +75,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
-        console.error('[DEBUG] Error fetching user profile:', error);
+        console.error('[DEBUG] Error fetching user profile:', error, profileData);
         setProfile(null);
       } else {
         console.log('[DEBUG] Profile data fetched:', profileData);
