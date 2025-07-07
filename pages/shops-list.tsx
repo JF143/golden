@@ -26,10 +26,10 @@ const ShopsList = () => {
   useEffect(() => {
     const fetchShops = async () => {
       try {
-        // Only fetch shops owned by the current user if they're a merchant
+        // Only fetch shops owned by the current user if they're a shop owner
         let query = supabase.from("food_stall").select("*")
 
-        if (user && profile?.user_type === "merchant") {
+        if (user && profile?.user_type === "shop") {
           query = query.eq("owner_id", user.id)
         }
 
