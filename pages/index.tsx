@@ -312,6 +312,9 @@ const LandingPage = () => {
         </main>
 
         {/* Why Choose Section */}
+        <div style={{ width: '100%', maxWidth: isWide ? 1000 : 600, margin: '0 auto', marginTop: isWide ? '30px' : '20px', marginBottom: isWide ? '20px' : '10px' }}>
+          <hr style={{ border: 'none', borderTop: '2px solid #fff', margin: 0 }} />
+        </div>
         <section
           style={{
             marginTop: isWide ? "100px" : "60px",

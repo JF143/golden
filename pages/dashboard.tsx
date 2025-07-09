@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Head from "next/head"
 import { useRouter } from "next/router"
 import { useUser } from "../lib/userContext"
+import { supabase } from "../lib/supabaseClient"
 
 const GOLD = "#E2B24A"
 const LIGHT_GOLD = "#fff7e0"
@@ -34,6 +35,32 @@ const Dashboard = () => {
   const { user, profile, signOut } = useUser()
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [currentTime, setCurrentTime] = useState("")
+  // Edit Shop Name modal state
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [newShopName, setNewShopName] = useState("")
+  const [editLoading, setEditLoading] = useState(false)
+  const [editError, setEditError] = useState("")
+  const [editSuccess, setEditSuccess] = useState("")
+  const [currentShopName, setCurrentShopName] = useState("");
+
+  // Fetch current shop name for the logged-in user
+  useEffect(() => {
+    const fetchShopName = async () => {
+      if (user) {
+        const { data, error } = await supabase
+          .from("food_stall")
+          .select("stall_name")
+          .eq("owner_id", user.id)
+          .single();
+        if (data && data.stall_name) {
+          setCurrentShopName(data.stall_name);
+        } else {
+          setCurrentShopName("");
+        }
+      }
+    };
+    fetchShopName();
+  }, [user]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -64,6 +91,58 @@ const Dashboard = () => {
     }
   }
 
+  // Edit Shop Name handler
+  const handleEditShopName = async () => {
+    setEditLoading(true)
+    setEditError("")
+    setEditSuccess("")
+    if (!newShopName.trim()) {
+      setEditError("Shop name cannot be empty.")
+      setEditLoading(false)
+      return
+    }
+    if (!user) {
+      setEditError("User not found. Please sign in again.");
+      setEditLoading(false);
+      return;
+    }
+    // Check if food_stall row exists for this user
+    const { data: existingStall, error: fetchError } = await supabase
+      .from("food_stall")
+      .select("id")
+      .eq("owner_id", user.id)
+      .single();
+    if (fetchError && fetchError.code !== 'PGRST116') { // Not found is ok, other errors are not
+      setEditError("Failed to check shop: " + fetchError.message)
+      setEditLoading(false)
+      return
+    }
+    let error;
+    if (existingStall && existingStall.id) {
+      // Update existing
+      ({ error } = await supabase
+        .from("food_stall")
+        .update({ stall_name: newShopName.trim() })
+        .eq("owner_id", user.id));
+    } else {
+      // Insert new
+      ({ error } = await supabase
+        .from("food_stall")
+        .insert([{ owner_id: user.id, stall_name: newShopName.trim(), service_type: "Pickup" }]));
+    }
+    if (error) {
+      setEditError("Failed to update shop name: " + error.message)
+    } else {
+      setEditSuccess("Shop name updated!")
+      setCurrentShopName(newShopName.trim());
+      setTimeout(() => {
+        setShowEditModal(false)
+        setEditSuccess("")
+      }, 1000)
+    }
+    setEditLoading(false)
+  }
+
   return (
     <>
       <Head>
@@ -79,6 +158,43 @@ const Dashboard = () => {
           fontFamily: "'Inter', 'Segoe UI', sans-serif",
         }}
       >
+        {/* Edit Shop Name Modal */}
+        {showEditModal && (
+          <div style={{
+            position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+            background: "rgba(0,0,0,0.3)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center"
+          }}>
+            <div style={{ background: "#fff", borderRadius: 12, padding: 32, minWidth: 320, boxShadow: "0 4px 16px rgba(0,0,0,0.18)", textAlign: "center" }}>
+              <h3 style={{ marginBottom: 18, color: "#222" }}>Edit Shop Name</h3>
+              <input
+                type="text"
+                value={newShopName}
+                onChange={e => setNewShopName(e.target.value)}
+                placeholder={currentShopName ? `Current: ${currentShopName}` : "Enter new shop name"}
+                style={{ width: "100%", padding: 12, borderRadius: 6, border: "1px solid #ddd", fontSize: 16, marginBottom: 16, background: "#fff", color: "#111" }}
+                disabled={editLoading}
+              />
+              {editError && <div style={{ color: "#c33", marginBottom: 10 }}>{editError}</div>}
+              {editSuccess && <div style={{ color: "#006421", marginBottom: 10 }}>{editSuccess}</div>}
+              <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+                <button
+                  onClick={handleEditShopName}
+                  disabled={editLoading}
+                  style={{ background: "#E2B24A", color: "#fff", border: "none", borderRadius: 6, padding: "10px 24px", fontWeight: 600, cursor: editLoading ? "not-allowed" : "pointer" }}
+                >
+                  {editLoading ? "Saving..." : "Save"}
+                </button>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  disabled={editLoading}
+                  style={{ background: "#eee", color: "#333", border: "none", borderRadius: 6, padding: "10px 24px", fontWeight: 600, cursor: editLoading ? "not-allowed" : "pointer" }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Header */}
         <div
           style={{
@@ -141,7 +257,26 @@ const Dashboard = () => {
                         }}
                       >
                         <button
-                          onClick={() => alert('Edit Shop Name feature coming soon!')}
+                          onClick={async () => {
+                            setShowEditModal(true);
+                            setEditError("");
+                            setEditSuccess("");
+                            // Fetch and set the current shop name and prefill
+                            if (user) {
+                              const { data, error } = await supabase
+                                .from("food_stall")
+                                .select("stall_name")
+                                .eq("owner_id", user.id)
+                                .single();
+                              if (data && data.stall_name) {
+                                setCurrentShopName(data.stall_name);
+                                setNewShopName(data.stall_name);
+                              } else {
+                                setCurrentShopName("");
+                                setNewShopName("");
+                              }
+                            }
+                          }}
                           style={{
                             width: "100%",
                             textAlign: "left",

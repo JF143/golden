@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { supabase } from "../lib/supabaseClient"
 import { useUser } from "../lib/userContext"
+import { useRouter } from "next/router";
 
 const categories = [
   { name: "Breakfast", icon: <i className="fas fa-mug-hot"></i> },
@@ -80,7 +81,14 @@ const Home = () => {
   const [selectedProduct, setSelectedProduct] = useState<any>(null)
   const [actionMessage, setActionMessage] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
-  const { user, profile, loading: userLoading, signOut } = useUser()
+  const router = useRouter();
+  const { user, profile, loading: userLoading, signOut } = useUser();
+
+  useEffect(() => {
+    if (!userLoading && !user) {
+      router.push("/sign-in");
+    }
+  }, [user, userLoading, router]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -118,7 +126,7 @@ const Home = () => {
   const handleLogout = async () => {
     setShowUserMenu(false);
     await signOut();
-    window.location.href = "/";
+    window.location.replace("/sign-in");
   }
 
   const addToCart = async (product: any) => {
