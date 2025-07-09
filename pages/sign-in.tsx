@@ -78,6 +78,9 @@ export default function SignIn() {
         }
       }
 
+      // Always stop loading before redirect
+      setLoading(false);
+
       // Redirect based on user type
       setTimeout(() => {
         if (userType === "shop") {
@@ -90,6 +93,7 @@ export default function SignIn() {
       }, 500)
     } catch (error) {
       console.error("Error in handleUserRedirect:", error)
+      setLoading(false);
       // Default to customer home if there's any error
       router.push("/home")
     }
@@ -125,6 +129,8 @@ export default function SignIn() {
       if (data?.user) {
         console.log("User signed in successfully:", data.user.email)
         await handleUserRedirect(data.user.id)
+      } else {
+        setLoading(false)
       }
     } catch (error: any) {
       console.error("Unexpected sign in error:", error)
@@ -161,17 +167,20 @@ export default function SignIn() {
     <div
       style={{
         minHeight: "100vh",
-        backgroundImage: "url(/img/Golden Bites.png)",
+        backgroundImage: "url('/img/Golden Bites.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed",
+        position: "relative",
+        overflow: "hidden",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: "20px",
       }}
     >
-      {/* Background overlay */}
+      {/* Background overlay for better text readability */}
       <div
         style={{
           position: "absolute",
@@ -179,7 +188,7 @@ export default function SignIn() {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: "rgba(226, 178, 74, 0.3)",
+          background: "rgba(226, 178, 74, 0.3)", // Golden overlay with transparency
           zIndex: 1,
         }}
       />
@@ -253,6 +262,7 @@ export default function SignIn() {
                 borderRadius: "6px",
                 fontSize: "16px",
                 backgroundColor: loading ? "#f5f5f5" : "white",
+                color: "#111", // set text color to black
                 boxSizing: "border-box",
               }}
               placeholder="Enter your email"
@@ -287,6 +297,7 @@ export default function SignIn() {
                   borderRadius: "6px",
                   fontSize: "16px",
                   backgroundColor: loading ? "#f5f5f5" : "white",
+                  color: "#111", // set text color to black
                   boxSizing: "border-box",
                 }}
                 placeholder="Enter your password"
@@ -321,7 +332,26 @@ export default function SignIn() {
             }}
           >
             <label style={{ display: "flex", alignItems: "center", fontSize: "14px", color: "#666" }}>
-              <input type="checkbox" style={{ marginRight: "8px" }} disabled={loading} />
+              <input
+                type="checkbox"
+                style={{
+                  marginRight: "8px",
+                  width: "16px",
+                  height: "16px",
+                  appearance: "none",
+                  WebkitAppearance: "none",
+                  MozAppearance: "none",
+                  background: "#fff",
+                  border: "1.5px solid #bbb",
+                  borderRadius: "4px",
+                  outline: "none",
+                  cursor: loading ? "not-allowed" : "pointer",
+                  display: "inline-block",
+                  verticalAlign: "middle",
+                  position: "relative",
+                }}
+                disabled={loading}
+              />
               Remember me
             </label>
             <a
