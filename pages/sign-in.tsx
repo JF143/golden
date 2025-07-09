@@ -39,11 +39,18 @@ export default function SignIn() {
         .from("profiles")
         .select("user_type")
         .eq("id", userId)
-        .single()
+        .single();
+      console.log('Profile fetch:', profile, profileError);
 
-      console.log("Profile data:", profile, "Profile error:", profileError)
+      let userType = "customer"; // or your default
 
-      let userType = "customer" // default fallback
+      if (!profile) {
+        // If no profile, create one
+        const { error: insertError } = await supabase.from("profiles").insert([
+          { id: userId, user_type: userType, created_at: new Date().toISOString() }
+        ]);
+        console.log('Profile insert:', insertError);
+      }
 
       // Check localStorage first (from landing page selection)
       const selectedUserType = typeof window !== "undefined" ? localStorage.getItem("userType") : null
