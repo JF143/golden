@@ -7,12 +7,20 @@ import { useUser } from "../lib/userContext"
 
 const useResponsive = () => {
   const [isWide, setIsWide] = React.useState(false)
+
   React.useEffect(() => {
-    const check = () => setIsWide(window.innerWidth >= 1100)
+    const check = () => {
+      if (typeof window !== "undefined") {
+        setIsWide(window.innerWidth >= 1100)
+      }
+    }
     check()
-    window.addEventListener("resize", check)
-    return () => window.removeEventListener("resize", check)
+    if (typeof window !== "undefined") {
+      window.addEventListener("resize", check)
+      return () => window.removeEventListener("resize", check)
+    }
   }, [])
+
   return isWide
 }
 
@@ -51,12 +59,29 @@ const LandingPage = () => {
   return (
     <div
       style={{
-        background: "linear-gradient(135deg, #E2B24A 0%, #D4A043 50%, #C69236 100%)",
+        backgroundImage: "url('/img/Golden Bites.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed",
         minHeight: "100vh",
         position: "relative",
         overflow: "hidden",
       }}
     >
+      {/* Background overlay for better text readability */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(226, 178, 74, 0.3)", // Golden overlay with transparency
+          zIndex: 0,
+        }}
+      />
+
       {/* Background decorative elements */}
       <div
         style={{
@@ -175,7 +200,6 @@ const LandingPage = () => {
               <br />
               Delivered Right
             </h1>
-
             <p
               style={{
                 fontSize: isWide ? "20px" : "18px",
@@ -185,8 +209,7 @@ const LandingPage = () => {
                 maxWidth: "500px",
               }}
             >
-              Order delicious meals from your favorite campus restaurants and get them delivered straight to your dorm,
-              classroom, or anywhere on campus.
+              The campus-powered food ordering platform made for students, by students. Whether you're craving your favorite stall meal or discovering new campus flavors, we've got you covered — fast, simple, and just a few taps away.
             </p>
 
             {/* Action Buttons */}
@@ -224,7 +247,6 @@ const LandingPage = () => {
               >
                 Order Food
               </button>
-
               <button
                 onClick={handleSellFood}
                 style={{
@@ -308,7 +330,6 @@ const LandingPage = () => {
           >
             Why Choose Golden Bites?
           </h2>
-
           <div
             style={{
               display: "grid",
